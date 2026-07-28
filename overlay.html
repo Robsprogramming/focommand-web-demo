@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- 'unsafe-inline' in script-src: this file's logic is one inline <script>.
+       img-src data: covers the screenshot background pushed over IPC. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; }
+    #bg {
+      position: absolute; inset: 0;
+      background-size: 100% 100%; background-repeat: no-repeat;
+    }
+    #overlay {
+      position: absolute; inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    #canvas { position: absolute; inset: 0; cursor: crosshair; }
+    #hint {
+      position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.72); color: #e0e0e0;
+      padding: 7px 18px; border-radius: 8px;
+      font-family: system-ui, sans-serif; font-size: 13px;
+      pointer-events: none; white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #cancel {
+      position: absolute; top: 14px; right: 16px;
+      background: rgba(0,0,0,0.72); color: #e0e0e0;
+      padding: 7px 16px; border-radius: 8px;
+      font-family: system-ui, sans-serif; font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.15); cursor: pointer;
+      transition: background 0.15s;
+    }
+    #cancel:hover { background: rgba(160,40,40,0.8); }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="overlay"></div>
+  <canvas id="canvas"></canvas>
+  <div id="hint">Click and drag to select an area — Esc to cancel</div>
+  <button id="cancel">Cancel</button>
+
+  <script>
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var bgEl = document.getElementById('bg');
+    var dragging = false;
+    var startX = 0, startY = 0, curX = 0, curY = 0;
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      if (dragging) draw();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    if (window.overlay) {
+      window.overlay.onInit(function(data) {
+        if (data && data.screenshotUrl) {
+          bgEl.style.backgroundImage = 'url(' + data.screenshotUrl + ')';
+        }
+      });
+    }
+
+    canvas.addEventListener('mousedown', function(e) {
+      if (e.button !== 0) return;
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      curX = e.clientX; curY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', function(e) {
+      if (!dragging) return;
+      curX = e.clientX; curY = e.clientY;
+      draw();
+    });
+
+    window.addEventListener('mouseup', function(e) {
+      if (!dragging || e.button !== 0) return;
+      dragging = false;
+      curX = e.clientX; curY = e.clientY;
+      var x = Math.min(startX, curX);
+      var y = Math.min(startY, curY);
+      var w = Math.abs(curX - startX);
+      var h = Math.abs(curY - startY);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (w > 16 && h > 16) {
+        window.overlay && window.overlay.selected({ x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h) });
+      }
+    });
+
+    document.getElementById('cancel').addEventListener('click', function() {
+      window.overlay && window.overlay.cancel();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        window.overlay && window.overlay.cancel();
+      }
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!dragging) return;
+      var x = Math.min(startX, curX);
+      var y = Math.min(startY, curY);
+      var w = Math.abs(curX - startX);
+      var h = Math.abs(curY - startY);
+
+      // Darken outside the selection
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(0, 0, canvas.width, y);
+      ctx.fillRect(0, y + h, canvas.width, canvas.height - y - h);
+      ctx.fillRect(0, y, x, h);
+      ctx.fillRect(x + w, y, canvas.width - x - w, h);
+
+      // Selection border
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+      ctx.strokeRect(x, y, w, h);
+
+      // Corner handles
+      var hs = 8;
+      ctx.fillStyle = '#6366f1';
+      [[x,y],[x+w,y],[x,y+h],[x+w,y+h]].forEach(function(p) {
+        ctx.fillRect(p[0]-hs/2, p[1]-hs/2, hs, hs);
+      });
+
+      // Size label
+      if (w > 60 && h > 22) {
+        var label = Math.round(w) + ' × ' + Math.round(h);
+        ctx.font = '11px system-ui, sans-serif';
+        var tw = ctx.measureText(label).width + 10;
+        var lx = x + w/2 - tw/2;
+        var ly = (y > 28) ? y - 22 : y + h + 4;
+        ctx.fillStyle = 'rgba(0,0,0,0.72)';
+        ctx.fillRect(lx, ly, tw, 18);
+        ctx.fillStyle = '#e0e0e0';
+        ctx.fillText(label, lx + 5, ly + 13);
+      }
+    }
+  </script>
+</body>
+</html>

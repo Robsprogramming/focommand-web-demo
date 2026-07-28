@@ -1,0 +1,1 @@
+function c(t){let r=0;const a=new Date;for(let e=0;e<365;e++){const n=new Date(a);n.setDate(n.getDate()-e);const o=n.toISOString().slice(0,10);if(t[o])r++;else break}return r}function i(t,r){let a=0;for(let e=t.length-1;e>=0&&r(t[e]);e--)a++;return a}export{c as a,i as c};

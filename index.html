@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Removed by the relax-csp-dev vite plugin during `vite serve` (react-refresh
+         needs an inline preamble); enforced in builds. Google Fonts entries keep
+         the app's typefaces; React inline styles require 'unsafe-inline' in style-src. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.x.ai https://api.gumroad.com; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="./icon.png" />
+    <title>FoCommand</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="./assets/index-C9UxTE8y.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-J3Weg99K.css">
+  </head>
+  <body>
+    <!-- Draggable strip so the frameless window can still be moved by its
+         (now themed) title bar area. Custom min/max/close buttons are mounted
+         into win-controls-root so they live in the DOM and dim with the rest
+         of the page when an overlay (e.g. settings panel) opens. -->
+    <div id="titlebar-drag"></div>
+    <div id="win-controls-root"></div>
+    <div id="root"></div>
+  </body>
+</html>

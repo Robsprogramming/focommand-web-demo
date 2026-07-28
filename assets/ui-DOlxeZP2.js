@@ -1,0 +1,1 @@
+function s(o,n){return o&&n>0}function r(o,n,c){for(const[f,t]of n)if(o>=f)return t;return c}function C(o){return r(o,[[80,"#34d399"],[60,"#fbbf24"],[40,"#fb923c"]],"#f87171")}const e=[[70,"#4ecdc4"],[40,"#ffd93d"]],i="#ff6b6b";function u(o){return r(o,e,i)}export{u as c,s as i,C as s};

@@ -1,0 +1,3193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- 'unsafe-inline' in script-src: this file's logic is one inline <script>. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.x.ai https://api.gumroad.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FoCommand Widget</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden; background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none;
+  }
+
+  /* ── Theme variables ── */
+  /* @generated:themes:start — edit src/styles/themes.json, then `npm run gen:themes` */
+  :root {
+    --w-bg: rgba(6,6,15,0.97);
+    --w-dim: rgba(255,255,255,0.04);
+    --w-border: rgba(0,229,255,0.18);
+    --w-divider: rgba(0,229,255,0.09);
+    --w-text: rgba(226,232,240,0.88);
+    --w-text-mid: rgba(226,232,240,0.7);
+    --w-text-idle: rgba(255,255,255,0.32);
+    --w-text-faint: rgba(255,255,255,0.18);
+    --w-accent: #00e5ff;
+    --w-glow: rgba(0,30,45,0.98);
+  }
+  html[data-theme="sunset"] {
+    --w-bg: rgba(26,10,0,0.97);
+    --w-border: rgba(255,107,53,0.2);
+    --w-divider: rgba(255,107,53,0.1);
+    --w-text: rgba(253,232,208,0.9);
+    --w-text-mid: rgba(253,232,208,0.7);
+    --w-text-idle: rgba(253,232,208,0.38);
+    --w-text-faint: rgba(253,232,208,0.2);
+    --w-accent: #ff6b35;
+    --w-glow: rgba(60,25,5,0.98);
+  }
+  html[data-theme="aurora"] {
+    --w-bg: rgba(2,15,10,0.97);
+    --w-border: rgba(0,255,163,0.18);
+    --w-divider: rgba(0,255,163,0.09);
+    --w-text: rgba(208,248,232,0.9);
+    --w-text-mid: rgba(208,248,232,0.7);
+    --w-text-idle: rgba(208,248,232,0.38);
+    --w-text-faint: rgba(208,248,232,0.2);
+    --w-accent: #00ffa3;
+    --w-glow: rgba(4,50,30,0.98);
+  }
+  html[data-theme="sakura"] {
+    --w-bg: rgba(18,6,14,0.97);
+    --w-border: rgba(255,110,180,0.2);
+    --w-divider: rgba(255,110,180,0.1);
+    --w-text: rgba(252,228,236,0.9);
+    --w-text-mid: rgba(252,228,236,0.7);
+    --w-text-idle: rgba(252,228,236,0.38);
+    --w-text-faint: rgba(252,228,236,0.2);
+    --w-accent: #ff6eb4;
+    --w-glow: rgba(60,10,40,0.98);
+  }
+  html[data-theme="ocean"] {
+    --w-bg: rgba(2,10,20,0.97);
+    --w-border: rgba(64,196,255,0.18);
+    --w-divider: rgba(64,196,255,0.09);
+    --w-text: rgba(207,232,244,0.9);
+    --w-text-mid: rgba(207,232,244,0.7);
+    --w-text-idle: rgba(207,232,244,0.38);
+    --w-text-faint: rgba(207,232,244,0.2);
+    --w-accent: #40c4ff;
+    --w-glow: rgba(4,30,60,0.98);
+  }
+  html[data-theme="neon"] {
+    --w-bg: rgba(10,0,20,0.97);
+    --w-border: rgba(224,64,251,0.2);
+    --w-divider: rgba(224,64,251,0.1);
+    --w-text: rgba(240,223,248,0.9);
+    --w-text-mid: rgba(240,223,248,0.7);
+    --w-text-idle: rgba(240,223,248,0.38);
+    --w-text-faint: rgba(240,223,248,0.2);
+    --w-accent: #e040fb;
+    --w-glow: rgba(30,5,50,0.98);
+  }
+  html[data-theme="cyberpunk"] {
+    --w-bg: rgba(12,12,0,0.97);
+    --w-border: rgba(240,228,0,0.22);
+    --w-divider: rgba(240,228,0,0.1);
+    --w-text: rgba(245,245,220,0.9);
+    --w-text-mid: rgba(245,245,220,0.7);
+    --w-text-idle: rgba(245,245,220,0.38);
+    --w-text-faint: rgba(245,245,220,0.2);
+    --w-accent: #f0e400;
+    --w-glow: rgba(40,40,5,0.98);
+  }
+  html[data-theme="terminal"] {
+    --w-bg: rgba(2,8,2,0.97);
+    --w-border: rgba(58,255,110,0.2);
+    --w-divider: rgba(58,255,110,0.1);
+    --w-text: rgba(200,250,204,0.9);
+    --w-text-mid: rgba(200,250,204,0.7);
+    --w-text-idle: rgba(200,250,204,0.38);
+    --w-text-faint: rgba(200,250,204,0.2);
+    --w-accent: #3aff6e;
+    --w-glow: rgba(8,48,16,0.98);
+  }
+  html[data-theme="synthwave"] {
+    --w-bg: rgba(18,5,36,0.97);
+    --w-border: rgba(255,41,117,0.22);
+    --w-divider: rgba(255,41,117,0.1);
+    --w-text: rgba(243,232,255,0.9);
+    --w-text-mid: rgba(243,232,255,0.7);
+    --w-text-idle: rgba(243,232,255,0.38);
+    --w-text-faint: rgba(243,232,255,0.2);
+    --w-accent: #ff2975;
+    --w-glow: rgba(70,10,60,0.98);
+  }
+  html[data-theme="noir"] {
+    --w-bg: rgba(10,10,10,0.97);
+    --w-border: rgba(255,255,255,0.14);
+    --w-divider: rgba(255,255,255,0.08);
+    --w-text: rgba(237,237,237,0.9);
+    --w-text-mid: rgba(237,237,237,0.7);
+    --w-text-idle: rgba(237,237,237,0.38);
+    --w-text-faint: rgba(237,237,237,0.2);
+    --w-accent: #e8e8e8;
+    --w-glow: rgba(40,40,40,0.98);
+  }
+  html[data-theme="velvet"] {
+    --w-bg: rgba(10,14,31,0.97);
+    --w-border: rgba(245,197,66,0.18);
+    --w-divider: rgba(245,197,66,0.09);
+    --w-text: rgba(236,230,216,0.9);
+    --w-text-mid: rgba(236,230,216,0.7);
+    --w-text-idle: rgba(236,230,216,0.38);
+    --w-text-faint: rgba(236,230,216,0.2);
+    --w-accent: #f5c542;
+    --w-glow: rgba(50,40,10,0.98);
+  }
+  html[data-theme="hazard"] {
+    --w-bg: rgba(13,13,10,0.97);
+    --w-border: rgba(255,214,10,0.24);
+    --w-divider: rgba(255,214,10,0.12);
+    --w-text: rgba(242,239,226,0.9);
+    --w-text-mid: rgba(242,239,226,0.7);
+    --w-text-idle: rgba(242,239,226,0.38);
+    --w-text-faint: rgba(242,239,226,0.2);
+    --w-accent: #ffd60a;
+    --w-glow: rgba(58,48,5,0.98);
+  }
+  html[data-theme="light"] {
+    --w-bg: rgba(243,239,233,0.97);
+    --w-dim: rgba(0,0,0,0.04);
+    --w-border: rgba(37,99,235,0.18);
+    --w-divider: rgba(37,99,235,0.09);
+    --w-text: rgba(28,25,23,0.9);
+    --w-text-mid: rgba(28,25,23,0.7);
+    --w-text-idle: rgba(0,0,0,0.38);
+    --w-text-faint: rgba(0,0,0,0.22);
+    --w-accent: #2563eb;
+    --w-glow: rgba(215,225,252,0.97);
+  }
+  html[data-theme="spring"] {
+    --w-bg: rgba(254,255,248,0.97);
+    --w-dim: rgba(0,0,0,0.04);
+    --w-border: rgba(34,197,94,0.22);
+    --w-divider: rgba(34,197,94,0.12);
+    --w-text: rgba(26,46,26,0.9);
+    --w-text-mid: rgba(26,46,26,0.7);
+    --w-text-idle: rgba(0,0,0,0.38);
+    --w-text-faint: rgba(0,0,0,0.22);
+    --w-accent: #e8508a;
+    --w-glow: rgba(220,245,220,0.97);
+  }
+  html[data-theme="envoy"] {
+    --w-bg: rgba(250,247,242,0.97);
+    --w-dim: rgba(22,16,6,0.04);
+    --w-border: rgba(22,16,6,0.11);
+    --w-divider: rgba(22,16,6,0.07);
+    --w-text: rgba(14,16,24,0.90);
+    --w-text-mid: rgba(14,16,24,0.65);
+    --w-text-idle: rgba(14,16,24,0.40);
+    --w-text-faint: rgba(14,16,24,0.22);
+    --w-accent: #c4892c;
+    --w-glow: rgba(255,247,232,0.98);
+  }
+  html[data-theme="porcelain"] {
+    --w-bg: rgba(255,255,255,0.97);
+    --w-dim: rgba(26,40,68,0.04);
+    --w-border: rgba(26,40,68,0.10);
+    --w-divider: rgba(26,40,68,0.06);
+    --w-text: rgba(26,40,68,0.92);
+    --w-text-mid: rgba(26,40,68,0.65);
+    --w-text-idle: rgba(26,40,68,0.40);
+    --w-text-faint: rgba(26,40,68,0.22);
+    --w-accent: #b87d2e;
+    --w-glow: rgba(248,243,234,0.98);
+  }
+  html[data-theme="frost"] {
+    --w-bg: rgba(255,255,255,0.97);
+    --w-dim: rgba(12,35,64,0.04);
+    --w-border: rgba(12,35,64,0.10);
+    --w-divider: rgba(12,35,64,0.06);
+    --w-text: rgba(12,35,64,0.92);
+    --w-text-mid: rgba(12,35,64,0.65);
+    --w-text-idle: rgba(12,35,64,0.40);
+    --w-text-faint: rgba(12,35,64,0.22);
+    --w-accent: #0369a1;
+    --w-glow: rgba(230,242,254,0.98);
+  }
+  html[data-theme="ivory"] {
+    --w-bg: rgba(255,253,249,0.97);
+    --w-dim: rgba(40,30,20,0.04);
+    --w-border: rgba(40,30,20,0.10);
+    --w-divider: rgba(40,30,20,0.06);
+    --w-text: rgba(28,20,16,0.92);
+    --w-text-mid: rgba(28,20,16,0.65);
+    --w-text-idle: rgba(28,20,16,0.40);
+    --w-text-faint: rgba(28,20,16,0.22);
+    --w-accent: #b84c1c;
+    --w-glow: rgba(254,245,235,0.98);
+  }
+  html[data-theme="paper"] {
+    --w-bg: rgba(244,241,234,0.97);
+    --w-dim: rgba(25,23,20,0.04);
+    --w-border: rgba(25,23,20,0.14);
+    --w-divider: rgba(25,23,20,0.08);
+    --w-text: rgba(25,23,20,0.92);
+    --w-text-mid: rgba(25,23,20,0.68);
+    --w-text-idle: rgba(25,23,20,0.4);
+    --w-text-faint: rgba(25,23,20,0.22);
+    --w-accent: #c92a2a;
+    --w-glow: rgba(250,226,222,0.98);
+  }
+  html[data-theme="lavender"] {
+    --w-bg: rgba(253,252,255,0.97);
+    --w-dim: rgba(60,42,100,0.04);
+    --w-border: rgba(60,42,100,0.12);
+    --w-divider: rgba(60,42,100,0.07);
+    --w-text: rgba(36,27,53,0.92);
+    --w-text-mid: rgba(36,27,53,0.65);
+    --w-text-idle: rgba(36,27,53,0.4);
+    --w-text-faint: rgba(36,27,53,0.22);
+    --w-accent: #7c3aed;
+    --w-glow: rgba(237,228,252,0.98);
+  }
+  html[data-theme="no-emoji"] {
+    --w-bg: rgba(13,17,23,0.97);
+    --w-border: rgba(88,166,255,0.18);
+    --w-divider: rgba(88,166,255,0.09);
+    --w-text: rgba(201,209,217,0.9);
+    --w-text-mid: rgba(201,209,217,0.7);
+    --w-text-idle: rgba(201,209,217,0.38);
+    --w-text-faint: rgba(201,209,217,0.2);
+    --w-accent: #58a6ff;
+    --w-glow: rgba(20,30,60,0.98);
+  }
+  html[data-theme="cobalt"] {
+    --w-bg: rgba(3,5,15,0.97);
+    --w-border: rgba(67,97,238,0.2);
+    --w-divider: rgba(67,97,238,0.1);
+    --w-text: rgba(216,228,248,0.9);
+    --w-text-mid: rgba(216,228,248,0.7);
+    --w-text-idle: rgba(216,228,248,0.38);
+    --w-text-faint: rgba(216,228,248,0.2);
+    --w-accent: #4361ee;
+    --w-glow: rgba(10,20,70,0.98);
+  }
+  html[data-theme="bloom"] {
+    --w-bg: rgba(255,251,253,0.97);
+    --w-dim: rgba(43,26,34,0.04);
+    --w-border: rgba(214,51,108,0.18);
+    --w-divider: rgba(214,51,108,0.09);
+    --w-text: rgba(43,26,34,0.92);
+    --w-text-mid: rgba(43,26,34,0.65);
+    --w-text-idle: rgba(43,26,34,0.4);
+    --w-text-faint: rgba(43,26,34,0.22);
+    --w-accent: #d6336c;
+    --w-glow: rgba(250,222,233,0.98);
+  }
+  /* @generated:themes:end */
+
+  /* ── No-emoji theme ── */
+  html[data-theme="no-emoji"] {
+    font-variant-emoji: text;
+  }
+  html[data-theme="no-emoji"] .assist-fan-icon {
+    display: none;
+  }
+
+  /* ── Wrapper ── */
+  .wrapper {
+    position: fixed; inset: 0; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── Pill style ── */
+  body[data-style="pill"] .wrapper {
+    background: var(--w-bg);
+    border: 1px solid var(--w-border);
+    border-radius: 18px;
+    box-shadow: 0 4px 28px rgba(0,0,0,0.55);
+  }
+  body[data-style="pill"] .main-bar { height: 64px; }
+
+  /* ── Bar style (bottom of screen, panel grows upward) ── */
+  body[data-style="bar"] .wrapper {
+    background: var(--w-bg);
+    border-top: 1px solid var(--w-border);
+    flex-direction: column-reverse;
+  }
+  body[data-style="bar"] .main-bar { height: 52px; }
+  body[data-style="bar"] .panel { border-top: none; border-bottom: 1px solid var(--w-divider); }
+
+  /* ── Sidebar style (right edge of screen) ── */
+  body[data-style="sidebar"] .wrapper {
+    /* the docked full-height panel sits over app content — stack the 0.97-alpha
+       theme bg twice so nothing legible bleeds through */
+    background: var(--w-bg);
+    background-image: linear-gradient(var(--w-bg), var(--w-bg));
+    border-left: 1px solid var(--w-border);
+    /* keep position:fixed;inset:0 from base — fills the full window height */
+  }
+  body[data-style="sidebar"] .main-bar {
+    flex-direction: column; align-items: stretch; padding: 12px 12px 10px; gap: 8px; flex: 1;
+  }
+  /* Header pinned to the top — base .drag-zone flex:1 would stretch it and
+     float the task text mid-panel. Right padding clears the window controls.
+     :not([data-condensed]) guards keep these column-layout rules out of the
+     condensed row strip, which can be entered from any style. */
+  body[data-style="sidebar"]:not([data-condensed="true"]) .drag-zone {
+    flex: none; align-items: flex-start;
+    padding: 2px 40px 10px 0;
+    border-bottom: 1px solid var(--w-divider);
+  }
+  body[data-style="sidebar"]:not([data-condensed="true"]) .dot { margin-top: 4px; }
+  body[data-style="sidebar"] .task-text {
+    white-space: normal; word-break: break-word; font-size: 11px; line-height: 1.45;
+    flex: none; width: 100%;
+  }
+  body[data-style="sidebar"] .actions-right { gap: 5px; }
+  /* Timer is the sidebar's centrepiece: big, centred, play/pause underneath */
+  body[data-style="sidebar"]:not([data-condensed="true"]) .timer-text {
+    font-size: 24px; width: 100%; text-align: center; padding: 6px 0 0;
+  }
+  body[data-style="sidebar"] .timer-complete-chip.visible { justify-content: center; }
+  body[data-style="sidebar"]:not([data-condensed="true"]) .play-btn {
+    display: flex; align-self: center; width: 30px; height: 30px; font-size: 11px;
+    margin-bottom: 4px;
+  }
+  /* Quick actions sit directly under the timer … */
+  body[data-style="sidebar"] .actions { flex-direction: column; gap: 4px; width: 100%; flex: none; }
+  body[data-style="sidebar"] .action-btn {
+    width: 100%; height: 30px; justify-content: flex-start; padding: 0 10px;
+  }
+  body[data-style="sidebar"] .btn-label { display: inline; }
+  /* … and the utility cluster (Capture / App / Assist / AI-Window-Tasks) is
+     anchored to the bottom, above the snap group */
+  body[data-style="sidebar"]:not([data-condensed="true"]) .capture-bar-btn { margin-top: auto; }
+  /* Window controls: side by side in the top-right corner (both buttons carry
+     .close-btn — without the offset they stack on the same spot) */
+  body[data-style="sidebar"]:not([data-condensed="true"]) .close-btn { position: absolute; top: 10px; right: 8px; }
+  body[data-style="sidebar"]:not([data-condensed="true"]) #condense-btn { right: 28px; }
+
+  /* ── Main bar (shared base) ── */
+  .main-bar {
+    display: flex; align-items: center; gap: 6px; padding: 0 12px; flex-shrink: 0; position: relative;
+  }
+
+  .drag-zone {
+    display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+  }
+
+  /* ── Status dot ── */
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--w-accent); flex-shrink: 0; transition: background 0.3s; }
+  .dot.paused { background: var(--w-text-faint); }
+  .dot.break  { background: #60a5fa; }
+
+  /* ── Task text ── */
+  .task-text {
+    flex: 1; font-size: 12px; color: var(--w-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+  .task-text.idle { color: var(--w-text-idle); font-style: italic; }
+
+  /* Inner span receives mouse events inside the pill's native drag region */
+  .task-inner { -webkit-app-region: no-drag; }
+
+  /* Invisible measuring span: lays out the full task text unclipped (same
+     inherited font) so truncation can be detected reliably — the visible,
+     ellipsized line measures within a px of its container, which is useless */
+  .task-measure {
+    position: absolute; left: 0; top: 0;
+    visibility: hidden; white-space: nowrap; pointer-events: none;
+  }
+
+  /* ── Task hover flyout (full task text, window grows to fit) ── */
+  .task-hover {
+    display: none; padding: 8px 12px; font-size: 12px; line-height: 1.45;
+    color: var(--w-text); white-space: normal; word-break: break-word;
+    border-top: 1px solid var(--w-divider); background: var(--w-dim);
+    overflow: hidden;
+    /* keep natural height even before the window grows — flex would otherwise
+       squeeze it (overflow:hidden zeroes min-height) and the measured height
+       used to size the window came out as a sliver */
+    flex-shrink: 0;
+  }
+  body[data-hover-expand="true"] .task-hover { display: block; }
+  body[data-style="bar"] .task-hover,
+  body[data-style="pill"][data-pinned-bottom="true"] .task-hover,
+  body[data-condensed="true"] .task-hover {
+    border-top: none; border-bottom: 1px solid var(--w-divider);
+  }
+
+  /* ── Context task (inferred — no user task active) ── */
+  .task-text.context-inferred { color: var(--w-text-idle); font-style: italic; }
+
+  /* ── Nudge ── */
+  .nudge-section {
+    display: none; flex-direction: column; gap: 6px;
+    padding-top: 7px; border-top: 1px solid var(--w-divider); margin-top: 5px;
+  }
+  body[data-nudge="true"] .nudge-section { display: flex; }
+  .nudge-msg {
+    font-size: 12px; color: var(--w-text-mid); line-height: 1.35;
+  }
+  .nudge-actions {
+    display: flex; gap: 5px;
+  }
+  .nudge-btn {
+    flex: 1; padding: 4px 8px; border-radius: 5px; font-size: 11px;
+    cursor: pointer; border: 1px solid var(--w-divider); transition: all 0.15s;
+    background: var(--w-dim); color: var(--w-text-mid);
+  }
+  .nudge-btn:hover { border-color: var(--w-accent); color: var(--w-accent); }
+  .nudge-btn:active { transform: scale(0.94); }
+  .nudge-confirm:hover { background: rgba(74,222,128,0.1); }
+  /* Condensed strip: bar is anchored to the window bottom and the flyout is
+     absolutely positioned above it, so the bar's pixels never move when the
+     window grows upward — the flyout is simply revealed (no reflow flicker).
+     --strip-h is set by the renderer just before expanding. */
+  body[data-condensed="true"] .main-bar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 100%;
+  }
+  /* Pin the bar to the strip height whenever the window is grown for ANY
+     overlay (flyout, assist fan, panel) — otherwise height:100% stretches
+     the bar over the grown window and its content visibly shifts */
+  body[data-condensed="true"][data-grown="true"] .main-bar {
+    height: var(--strip-h, 44px);
+  }
+  body[data-condensed="true"] .task-hover {
+    position: absolute; left: 0; right: 0; bottom: var(--strip-h, 44px);
+  }
+
+  /* ── Timer ── */
+  .timer-text {
+    font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--w-accent); letter-spacing: 0.05em; flex-shrink: 0;
+  }
+  .timer-text.break { color: #60a5fa; }
+  .timer-text.idle  { color: var(--w-text-faint); }
+  /* Hidden while the "Timer Complete" chip occupies the timer slot */
+  .timer-text.complete-hidden { display: none; }
+
+  /* ── Timer: slightly smaller in pill and bar (inline, left of Done btn) ── */
+  body[data-style="pill"] .timer-text,
+  body[data-style="bar"] .timer-text {
+    font-size: 11px;
+  }
+
+  /* ── Capture quick-access button (all modes; hidden in half strip) ── */
+  .capture-bar-btn {
+    display: none; align-items: center; justify-content: center;
+    width: 28px; height: 28px; flex-shrink: 0;
+    border: 1px solid var(--w-divider); border-radius: 50%;
+    background: var(--w-dim); color: var(--w-text-idle);
+    cursor: pointer; transition: all 0.15s;
+  }
+  body[data-style="bar"] .capture-bar-btn,
+  body[data-style="pill"] .capture-bar-btn,
+  body[data-style="sidebar"] .capture-bar-btn,
+  body[data-condensed="true"] .capture-bar-btn { display: flex; }
+  body[data-condensed="true"][data-half="true"] .capture-bar-btn { display: none !important; }
+  body[data-style="sidebar"] .capture-bar-btn {
+    width: 100%; height: 28px; border-radius: 6px;
+    justify-content: flex-start; padding: 0 8px; gap: 5px;
+  }
+  .capture-bar-btn:hover  { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+  .capture-bar-btn:active { transform: scale(0.88); }
+
+  /* ── Action buttons ── */
+  .actions { display: flex; gap: 3px; flex-shrink: 0; }
+
+  /* Bar: separate the action icons from the timer/play cluster */
+  body[data-style="bar"] .actions {
+    padding-left: 8px; margin-left: 5px;
+    border-left: 1px solid var(--w-divider);
+  }
+
+  .action-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 24px; min-width: 24px; padding: 0 5px; gap: 5px;
+    border: 1px solid var(--w-divider); border-radius: 6px;
+    background: var(--w-dim); color: var(--w-text-idle);
+    font-size: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .action-btn:hover  { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+  .action-btn:active { transform: scale(0.88); }
+  .action-btn.active { background: rgba(99,102,241,0.22); color: #818cf8; border-color: rgba(99,102,241,0.4); }
+
+  .btn-label { display: none; font-size: 11px; }
+
+  /* ── Close button ── */
+  .close-btn {
+    flex-shrink: 0;
+    cursor: pointer; font-size: 10px; color: var(--w-text-faint);
+    padding: 4px; border: none; background: none; line-height: 1; transition: color 0.15s;
+  }
+  .close-btn:hover { color: var(--w-text-mid); }
+
+  /* ── Panel ── */
+  .panel {
+    display: none; flex-direction: column; flex-shrink: 0;
+    border-top: 1px solid var(--w-divider);
+    background: var(--w-dim);
+  }
+  .panel.open { display: flex; }
+
+  .panel-body {
+    padding: 10px 12px; overflow-y: auto;
+    font-size: 12px; color: var(--w-text-mid); line-height: 1.5;
+  }
+  /* Window growth is clamped main-process side (260px panel max incl. the
+     ~40px footer) — anything taller than this scrolls instead of clipping */
+  body[data-style="bar"] .panel-body,
+  body[data-style="pill"] .panel-body { max-height: 220px; }
+  .panel-quote { font-style: italic; opacity: 0.85; }
+  .panel-author { margin-top: 6px; font-size: 11px; opacity: 0.5; text-align: right; }
+
+  .panel-tips { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .panel-tips li::before { content: '→ '; color: #6366f1; }
+
+  /* ── Explore panel ── */
+  .explore-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .explore-back {
+    flex-shrink: 0; background: none; border: 1px solid var(--w-divider); border-radius: 6px;
+    color: var(--w-text-mid); cursor: pointer; font-size: 12px; line-height: 1;
+    padding: 2px 8px; font-family: inherit;
+  }
+  .explore-back:hover { color: #818cf8; border-color: rgba(99,102,241,0.3); }
+  .explore-idea {
+    font-size: 11px; font-weight: 700; color: var(--w-text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .explore-section {
+    margin: 8px 0 3px; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase; color: #818cf8;
+  }
+  .explore-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .explore-item { display: flex; align-items: center; gap: 5px; }
+  .explore-item-text {
+    flex: 1; text-align: left; background: none; border: none; padding: 2px 0;
+    color: var(--w-text-mid); font-size: 11px; line-height: 1.4;
+    cursor: pointer; font-family: inherit;
+  }
+  .explore-item-text:hover { color: #818cf8; }
+  .explore-item-add {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 5px;
+    border: 1px solid var(--w-divider); background: var(--w-dim);
+    color: var(--w-text-mid); cursor: pointer; font-size: 12px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; font-family: inherit;
+  }
+  .explore-item-add:hover { color: #34d399; border-color: rgba(52,211,153,0.4); }
+  .explore-item-add:disabled { color: #34d399; cursor: default; }
+  .analyse-sugs li { display: flex; align-items: center; gap: 5px; }
+  .analyse-sug-text { flex: 1; }
+  .explore-go { display: block; margin: 6px 0 0 auto; }
+
+  .panel-input {
+    width: 100%; background: var(--w-dim); border: 1px solid var(--w-divider);
+    border-radius: 6px; color: var(--w-text); font-size: 12px;
+    padding: 6px 8px; resize: none; outline: none; font-family: inherit;
+    -webkit-user-select: text; user-select: text; margin-top: 6px;
+  }
+  .panel-input:focus { border-color: rgba(99,102,241,0.4); }
+
+  .panel-footer {
+    padding: 6px 12px 10px; display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+  }
+  .panel-btn {
+    font-size: 11px; padding: 4px 12px; border-radius: 5px;
+    border: 1px solid var(--w-divider); cursor: pointer; font-family: inherit;
+    background: rgba(99,102,241,0.15); color: #818cf8; transition: background 0.15s;
+  }
+  .panel-btn:hover { background: rgba(99,102,241,0.28); }
+  .panel-cancel { background: transparent; color: var(--w-text-idle); border-color: transparent; }
+  .panel-cancel:hover { background: var(--w-dim); color: var(--w-text-mid); }
+
+  .panel-saved { font-size: 11px; color: #4ade80; opacity: 0; transition: opacity 0.3s; margin-right: auto; }
+  .panel-saved.show { opacity: 1; }
+
+  .panel-loading { font-size: 12px; color: var(--w-text-idle); font-style: italic; }
+  @keyframes pulse { 0%,100% { opacity:0.35; } 50% { opacity:0.7; } }
+  .panel-loading { animation: pulse 1.4s ease-in-out infinite; }
+
+  .park-saved-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--w-text-faint); margin: 10px 0 4px;
+  }
+  .park-saved-list { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+  .park-saved-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 6px; border-radius: 5px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--w-divider);
+  }
+  .park-saved-text { flex: 1; font-size: 11px; color: var(--w-text-mid); line-height: 1.35; word-break: break-word; }
+  .park-saved-dismiss {
+    background: none; border: none; color: var(--w-text-faint); font-size: 13px;
+    cursor: pointer; padding: 0 2px; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .park-saved-dismiss:hover { color: var(--w-text-mid); }
+
+  .panel-impact { font-size: 11px; color: var(--w-text-mid); margin-top: 8px; line-height: 1.5; }
+  .panel-headline { font-size: 11px; color: var(--w-text-mid); font-style: italic; margin-bottom: 8px; }
+  .panel-recommendation { font-size: 12px; color: var(--w-text); line-height: 1.45; }
+  .panel-quickwin { font-size: 11px; color: #4ade80; margin-top: 6px; }
+  .panel-error { font-size: 11px; color: rgba(255,100,100,0.7); font-style: italic; }
+  .analyse-mode-btns { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+  .analyse-mode-btn {
+    flex: 1 1 45%; padding: 10px 6px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.25);
+    color: var(--w-text); cursor: pointer; transition: background 0.15s;
+  }
+  .analyse-mode-btn:hover { background: rgba(99,102,241,0.25); color: #818cf8; }
+
+  .action-btn.snapped { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.3); }
+
+  /* ── Snap group (visually separated from action buttons) ── */
+  .snap-group {
+    display: flex; align-items: center; gap: 3px;
+    padding-left: 8px; margin-left: 5px;
+    border-left: 1px solid var(--w-divider);
+  }
+  body[data-style="sidebar"] .snap-group {
+    padding-left: 0; margin-left: 0; border-left: none;
+    padding-top: 8px; margin-top: 4px;
+    border-top: 1px solid var(--w-divider);
+    width: 100%;
+  }
+  .snap-count-btn { height: 28px; min-width: 24px; padding: 0 8px; font-size: 13px; }
+  #snap-btn-1 { padding: 0 9px; }
+  .snap-n-btn { min-width: 22px; padding: 0 5px; font-size: 12px; font-weight: 600; }
+  /* Undo the sidebar's full-width .action-btn rule inside the snap row —
+     four width:100% buttons in one flex row overlap each other's labels */
+  body[data-style="sidebar"] .snap-group .action-btn {
+    width: auto; min-width: 0; height: 30px; justify-content: center; overflow: hidden;
+  }
+  body[data-style="sidebar"] .snap-n-btn { flex: 1; }
+  body[data-style="sidebar"] #snap-btn-1 { flex: 2; justify-content: flex-start; white-space: nowrap; }
+
+  /* ── Pin-to-bottom button ── */
+  #pin-bottom-btn { display: none; height: 28px; min-width: 28px; padding: 0 7px; font-size: 14px; }
+  body[data-style="pill"] #pin-bottom-btn { display: flex; }
+
+  /* ── Bottom-pinned pill: flip panel to grow upward ── */
+  body[data-style="pill"][data-pinned-bottom="true"] .wrapper { flex-direction: column-reverse; }
+  body[data-style="pill"][data-pinned-bottom="true"] .panel {
+    border-top: none; border-bottom: 1px solid var(--w-divider);
+  }
+
+  /* ── Hide snap-group in pill (reclaimed space for Done button) ── */
+  body[data-style="pill"] .snap-group { display: none; }
+
+  /* ── Pill: whole header bar is the drag handle ── */
+  body[data-style="pill"] .main-bar { -webkit-app-region: drag; cursor: move; }
+  body[data-style="pill"] button { -webkit-app-region: no-drag; cursor: pointer; }
+
+  /* ── Taskbar toggle button ── */
+  #taskbar-btn {
+    display: none; height: 24px; min-width: 24px; padding: 0 6px;
+    font-size: 12px; flex-shrink: 0;
+  }
+  body[data-style="pill"] #taskbar-btn { display: flex; }
+
+  /* ── Condense-to-corner button ── */
+  #condense-btn {
+    flex-shrink: 0; cursor: pointer; font-size: 11px; color: var(--w-text-faint);
+    padding: 4px 3px; border: none; background: none; line-height: 1; transition: color 0.15s;
+  }
+  #condense-btn:hover { color: var(--w-text-mid); }
+
+  /* ── Half-size toggle (condensed strip only) ── */
+  #half-btn {
+    display: none; flex-shrink: 0; cursor: pointer; font-size: 11px; color: var(--w-text-faint);
+    padding: 4px 3px; border: none; background: none; line-height: 1; transition: color 0.15s;
+  }
+  #half-btn:hover { color: var(--w-text-mid); }
+  body[data-condensed="true"] #half-btn { display: block; }
+
+  /* Half-size strip: keep dot, timer, play and the toggles — drop the rest */
+  body[data-condensed="true"][data-half="true"] .task-text,
+  body[data-condensed="true"][data-half="true"] #assist-btn { display: none !important; }
+  body[data-condensed="true"][data-half="true"] #ai-autopilot-btn { display: none !important; }
+  body[data-condensed="true"][data-half="true"] .main-bar { padding: 0 8px; }
+
+  /* Half mode hides the in-bar task text and Assist button, so the hover
+     flyout carries both: full task text plus a clickable Assist button.
+     (ID selectors out-rank the .assist-btn display rules.) */
+  #task-hover-text { display: block; }
+  #task-hover-assist { display: none; }
+  body[data-condensed="true"][data-half="true"] #task-hover-assist {
+    display: inline-flex; margin-top: 7px;
+  }
+
+  /* Compact fan in half mode: 190px window + the 220px grow cap can't fit
+     the full-size items, so shrink them to keep every option reachable */
+  body[data-condensed="true"][data-half="true"] .assist-fan { gap: 4px; padding: 6px 8px; }
+  body[data-condensed="true"][data-half="true"] .assist-fan-item { flex-basis: 52px; padding: 5px 3px; }
+
+  /* ── Condensed mode: mini strip that sits in the taskbar ── */
+  body[data-condensed="true"] .celebration-overlay,
+  body[data-condensed="true"] .actions,
+  body[data-condensed="true"] .snap-group,
+  body[data-condensed="true"] .done-btn,
+  body[data-condensed="true"] #taskbar-btn,
+  body[data-condensed="true"] #pin-bottom-btn,
+  body[data-condensed="true"] .timer-complete-chip,
+  body[data-condensed="true"] #close-btn { display: none !important; }
+
+  body[data-condensed="true"] .wrapper {
+    background: var(--w-bg);
+    border: 1px solid var(--w-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    flex-direction: column;
+  }
+  body[data-condensed="true"] .main-bar {
+    height: 100%; padding: 0 10px; gap: 6px;
+    flex-direction: row; align-items: center; flex: 1; width: 100%;
+    -webkit-app-region: no-drag !important; cursor: default;
+  }
+  body[data-condensed="true"] .drag-zone { flex: 1; min-width: 0; }
+  body[data-condensed="true"] .task-text { font-size: 13px; }
+  body[data-condensed="true"] .timer-text { font-size: 13px !important; }
+  body[data-condensed="true"] .play-btn { height: 20px; width: 20px; font-size: 8px; }
+  body[data-condensed="true"] #condense-btn { color: var(--w-accent); font-size: 13px; }
+
+  /* ── Assist button (all modes) ── */
+  .assist-btn { display: none; }
+  body[data-condensed="true"] .assist-btn,
+  body[data-style="bar"] .assist-btn,
+  body[data-style="pill"] .assist-btn,
+  body[data-style="sidebar"] .assist-btn {
+    display: flex; align-items: center; gap: 4px;
+    height: 24px; padding: 0 9px; flex-shrink: 0;
+    border: 1px solid var(--w-divider); border-radius: 12px;
+    background: var(--w-dim); color: var(--w-text-mid);
+    font-size: 11px; font-family: inherit; cursor: pointer;
+    line-height: 1; transition: all 0.15s; white-space: nowrap;
+  }
+  .assist-btn:hover, .assist-btn.active {
+    background: rgba(99,102,241,0.18); color: #818cf8; border-color: rgba(99,102,241,0.35);
+  }
+  .assist-btn:active { transform: scale(0.92); }
+  /* Pill is width-constrained: icon-only assist buttons (tooltips carry the
+     names). Condensed strip excluded — it keeps its labelled buttons. */
+  body[data-style="pill"]:not([data-condensed="true"]) .assist-btn { padding: 0 7px; }
+  body[data-style="pill"]:not([data-condensed="true"]) .assist-btn span:last-child { display: none; }
+  body[data-style="sidebar"] .assist-btn {
+    width: 100%; height: 28px; justify-content: flex-start; border-radius: 6px;
+  }
+
+  /* ── AI-Autopilot button: gold — opens a menu with Window-Tasks (stage the
+     Do screen) and Goal-Tasks (whole-desktop plan). ID selector so the gold
+     survives the per-mode .assist-btn colour rules. ── */
+  #ai-autopilot-btn {
+    color: #f6c945; border-color: rgba(246,201,69,0.45);
+    background: rgba(246,201,69,0.10);
+  }
+  #ai-autopilot-btn:hover, #ai-autopilot-btn.active {
+    background: rgba(246,201,69,0.22); color: #ffd76a; border-color: rgba(246,201,69,0.65);
+    box-shadow: 0 0 8px rgba(246,201,69,0.35);
+  }
+  /* Busy = a pipeline is running: keep pulsing until the completion
+     signal arrives, and make the button visibly inert — blurred, dimmed,
+     and click-proof (belt to the disabled attribute's braces). */
+  #ai-autopilot-btn.busy {
+    animation: automate-pulse 1.2s ease-in-out infinite;
+    opacity: 0.55;
+    filter: blur(0.5px) saturate(0.6);
+    pointer-events: none;
+    cursor: default;
+  }
+  #ai-autopilot-btn:disabled { pointer-events: none; }
+  /* Autopilot menu items carry the gold accent to match their launcher */
+  .autopilot-item .assist-fan-icon { color: #f6c945; }
+  .autopilot-item:hover {
+    background: rgba(246,201,69,0.15); color: #ffd76a; border-color: rgba(246,201,69,0.4);
+  }
+  @keyframes automate-pulse {
+    0%, 100% { box-shadow: 0 0 4px rgba(246,201,69,0.25); }
+    50%      { box-shadow: 0 0 14px rgba(246,201,69,0.75); }
+  }
+  /* Condensed strip is width-constrained like pill: icon-only */
+  body[data-condensed="true"] .automate-btn { padding: 0 7px; }
+  body[data-condensed="true"] .automate-btn span:last-child { display: none; }
+
+  /* ── Assist fan: option buttons revealed next to the main bar. Bar /
+     condensed / pinned pill grow the window upward (same mechanism as the
+     task hover flyout) — the bar stays anchored to the window bottom.
+     Unpinned pill grows downward; sidebar shows the fan inline (its window
+     is already full height). ── */
+  .assist-fan { display: none; }
+  body[data-condensed="true"][data-assist-open="true"] .assist-fan,
+  body[data-style="bar"][data-assist-open="true"] .assist-fan,
+  body[data-style="pill"][data-assist-open="true"] .assist-fan,
+  body[data-style="sidebar"][data-assist-open="true"] .assist-fan {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 6px; padding: 8px 10px;
+    border-bottom: 1px solid var(--w-divider);
+  }
+  /* Fan sits below the bar in unpinned pill and in sidebar — flip the divider
+     (condensed strip excluded: its fan is anchored above the strip) */
+  body[data-style="pill"]:not([data-pinned-bottom="true"]):not([data-condensed="true"])[data-assist-open="true"] .assist-fan,
+  body[data-style="sidebar"]:not([data-condensed="true"])[data-assist-open="true"] .assist-fan {
+    border-bottom: none; border-top: 1px solid var(--w-divider);
+  }
+  /* Condensed strip only: absolutely anchored above the bar so the bar's
+     pixels never move while the window resizes */
+  body[data-condensed="true"][data-assist-open="true"] .assist-fan {
+    position: absolute; left: 0; right: 0; bottom: var(--strip-h, 44px);
+  }
+
+  /* ── AI-Autopilot menu: same reveal/anchor mechanics as the assist fan,
+     keyed on data-autopilot-open. Holds the two AI task options. ── */
+  .autopilot-menu { display: none; }
+  body[data-condensed="true"][data-autopilot-open="true"] .autopilot-menu,
+  body[data-style="bar"][data-autopilot-open="true"] .autopilot-menu,
+  body[data-style="pill"][data-autopilot-open="true"] .autopilot-menu,
+  body[data-style="sidebar"][data-autopilot-open="true"] .autopilot-menu {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 6px; padding: 8px 10px;
+    border-bottom: 1px solid var(--w-divider);
+  }
+  body[data-style="pill"]:not([data-pinned-bottom="true"]):not([data-condensed="true"])[data-autopilot-open="true"] .autopilot-menu,
+  body[data-style="sidebar"]:not([data-condensed="true"])[data-autopilot-open="true"] .autopilot-menu {
+    border-bottom: none; border-top: 1px solid var(--w-divider);
+  }
+  body[data-condensed="true"][data-autopilot-open="true"] .autopilot-menu {
+    position: absolute; left: 0; right: 0; bottom: var(--strip-h, 44px);
+  }
+  /* Two options only — give them a touch more room than the dense assist grid */
+  .autopilot-menu .assist-fan-item { flex: 1 1 84px; max-width: 120px; }
+
+  .assist-fan-item {
+    flex: 1 1 60px; max-width: 92px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 7px 4px; border: 1px solid var(--w-divider); border-radius: 8px;
+    background: var(--w-dim); color: var(--w-text-mid);
+    font-family: inherit; cursor: pointer; transition: all 0.15s;
+    animation: assist-pop 0.44s var(--ease-spring) backwards;
+  }
+  .assist-fan-item:nth-child(2)  { animation-delay: 0.03s; }
+  .assist-fan-item:nth-child(3)  { animation-delay: 0.06s; }
+  .assist-fan-item:nth-child(4)  { animation-delay: 0.09s; }
+  .assist-fan-item:nth-child(5)  { animation-delay: 0.12s; }
+  .assist-fan-item:nth-child(6)  { animation-delay: 0.15s; }
+  .assist-fan-item:nth-child(7)  { animation-delay: 0.18s; }
+  .assist-fan-item:nth-child(8)  { animation-delay: 0.21s; }
+  .assist-fan-item:nth-child(9)  { animation-delay: 0.24s; }
+  .assist-fan-item:nth-child(10) { animation-delay: 0.27s; }
+  .assist-fan-item:nth-child(11) { animation-delay: 0.30s; }
+  .assist-fan-item:nth-child(12) { animation-delay: 0.33s; }
+  .assist-fan-item:hover { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+  .assist-fan-item:active { transform: scale(0.92); }
+  .assist-fan-icon { font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; color: var(--w-accent); }
+  .assist-fan-icon svg { display: block; width: 16px; height: 16px; }
+  .assist-fan-label { font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+  @keyframes assist-pop {
+    from { opacity: 0; transform: translateY(14px) scale(0.7); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ── Breathing guide (assist panel) ── */
+  .breathe-wrap { display: flex; align-items: center; justify-content: center; padding: 6px 0; }
+  .breathe-circle {
+    width: 88px; height: 88px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    border: 2px solid var(--w-accent); background: var(--w-dim);
+    transform: scale(0.78); transition: transform 3.9s ease-in-out;
+  }
+  .breathe-circle.phase-in, .breathe-circle.phase-hold-in { transform: scale(1); }
+  .breathe-label {
+    font-size: 10px; color: var(--w-text-mid);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .breathe-count { font-size: 16px; font-weight: 700; color: var(--w-accent); font-variant-numeric: tabular-nums; }
+
+  /* ── Condensed strip: the action panel opens above the bar, revealed the
+     same way as the assist fan (window grows upward) ── */
+  body[data-condensed="true"] .panel.open {
+    position: absolute; left: 0; right: 0; bottom: var(--strip-h, 44px);
+    border-top: none; border-bottom: 1px solid var(--w-divider);
+  }
+  body[data-condensed="true"] .panel-body { max-height: 150px; }
+
+  /* ── Done button ── */
+  .done-btn {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    height: 28px; padding: 0 10px; flex-shrink: 0;
+    border: 1px solid rgba(74,222,128,0.25); border-radius: 7px;
+    background: rgba(74,222,128,0.06); color: rgba(74,222,128,0.55);
+    font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .done-btn.hidden { display: none; }
+  .done-btn:hover { background: rgba(74,222,128,0.14); color: #4ade80; border-color: rgba(74,222,128,0.4); }
+  .done-btn:active { transform: scale(0.92); }
+  .done-btn.completing {
+    background: rgba(74,222,128,0.22); color: #4ade80;
+    border-color: rgba(74,222,128,0.55); cursor: default; pointer-events: none;
+  }
+  body[data-style="sidebar"] .done-btn {
+    width: 100%; height: 32px; justify-content: flex-start; padding: 0 8px; flex-shrink: 0;
+  }
+
+  /* ── Right-side flex wrapper (centres Done btn in bar) ── */
+  .actions-right {
+    flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 3px; min-width: 0;
+  }
+  /* Pill: right side keeps its natural width so it never spills over the Done
+     button; the task text shrinks (with ellipsis) instead */
+  body[data-style="pill"] .actions-right { flex: 0 0 auto; }
+  body[data-style="sidebar"] .actions-right {
+    flex: 1; flex-direction: column; justify-content: flex-start; width: 100%;
+  }
+
+  /* ── Timer Complete chip ── */
+  .timer-complete-chip {
+    display: none; align-items: center; gap: 5px; flex-shrink: 0;
+    background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.3);
+    border-radius: 5px; padding: 2px 8px; font-size: 10px;
+    color: var(--w-accent); white-space: nowrap;
+  }
+  .timer-complete-chip.visible { display: flex; }
+  .timer-complete-dismiss {
+    background: none; border: none; color: var(--w-text-idle);
+    font-size: 10px; cursor: pointer; padding: 0; font-family: inherit;
+    text-decoration: underline; line-height: 1;
+  }
+  .timer-complete-dismiss:hover { color: var(--w-text-mid); }
+
+  /* ── Play/pause button (next to timer) ── */
+  .play-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 22px; width: 22px; flex-shrink: 0;
+    border: 1px solid var(--w-divider); border-radius: 50%;
+    background: var(--w-dim); color: var(--w-text-idle);
+    font-size: 9px; cursor: pointer; transition: all 0.15s; line-height: 1;
+  }
+  .play-btn:hover { background: rgba(99,102,241,0.18); color: #818cf8; border-color: rgba(99,102,241,0.35); }
+  .play-btn:active { transform: scale(0.88); }
+  .play-btn.running { color: var(--w-accent); border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); }
+
+  /* ── Celebration Overlay ── */
+  .celebration-overlay {
+    display: none; position: fixed; inset: 0;
+    flex-direction: column; gap: 8px; padding: 14px 16px 14px;
+    background: var(--w-bg); overflow: hidden;
+  }
+  body[data-style="pill"] .celebration-overlay { border: 1px solid var(--w-border); border-radius: 18px; box-shadow: 0 4px 28px rgba(0,0,0,0.55); }
+  body[data-style="bar"] .celebration-overlay { border-top: 1px solid var(--w-border); }
+  .celebration-overlay.active { display: flex; }
+
+  .celebration-header { display: flex; align-items: flex-start; gap: 8px; }
+  .celebration-headline {
+    flex: 1; font-size: 13px; font-weight: 700; color: var(--w-text);
+    line-height: 1.35; overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    padding-right: 22px;
+  }
+  .celebration-dismiss-btn {
+    position: absolute; top: 12px; right: 14px;
+    background: none; border: none; color: var(--w-text-faint);
+    font-size: 16px; cursor: pointer; padding: 0; line-height: 1; transition: color 0.15s;
+  }
+  .celebration-dismiss-btn:hover { color: var(--w-text-mid); }
+  .celebration-body {
+    font-size: 11px; color: var(--w-text-mid); line-height: 1.5;
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  }
+  .celebration-extras { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+  .celebration-goal-link {
+    font-size: 11px; color: rgba(99,102,241,0.85); font-style: italic; line-height: 1.4;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .celebration-streak { font-size: 11px; color: var(--w-text-idle); }
+  .celebration-next-move {
+    margin-top: 4px; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid rgba(99,102,241,0.3); background: rgba(99,102,241,0.08);
+    text-align: left; font-family: inherit; width: 100%; transition: background 0.15s;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .celebration-next-move:hover { background: rgba(99,102,241,0.16); }
+  .celebration-next-label { font-size: 12px; font-weight: 600; color: #818cf8; }
+  .celebration-next-why {
+    font-size: 10px; color: var(--w-text-idle); line-height: 1.4;
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .celebration-loading {
+    display: flex; align-items: center; justify-content: center;
+    flex: 1; gap: 6px;
+  }
+  .celeb-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--w-accent); animation: celeb-pulse 1.2s ease-in-out infinite;
+  }
+  .celeb-dot:nth-child(2) { animation-delay: 0.2s; }
+  .celeb-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes celeb-pulse { 0%,100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+  /* ── Done glow: flood entire bar with accent color for 2 s ── */
+  @keyframes done-glow {
+    0%   { background-color: var(--w-bg); }
+    8%   { background-color: var(--w-glow); }
+    82%  { background-color: var(--w-glow); }
+    100% { background-color: var(--w-bg); }
+  }
+  .wrapper.done-glow { animation: done-glow 2s ease-in-out forwards; }
+
+  /* ── Next-task flash: task text pulse ── */
+  .task-text.next-task-flash {
+    color: var(--w-accent) !important;
+    font-weight: 700;
+    font-style: normal;
+    animation: next-task-flash-pulse 2s ease-in-out forwards;
+  }
+  @keyframes next-task-flash-pulse {
+    0%   { opacity: 0; }
+    12%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  /* ════ Motion: pop-up entrances & micro-interactions ════
+     Entrance-only by design — the window is resized natively the instant an
+     overlay closes, so exit animations would be clipped. Elements start at
+     opacity 0 (`backwards` fill), which also hides the 1–2 frame gap before
+     the native window growth lands. */
+  :root {
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);        /* expo-out: fast start, soft landing */
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* gentle overshoot */
+  }
+
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(9px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes slide-in-down {
+    from { opacity: 0; transform: translateY(-18px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes slide-in-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes chip-pop {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes dot-breathe {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.3); opacity: 0.6; }
+  }
+  @keyframes celeb-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* Panel and task flyout emerge from the bar edge they're attached to:
+     sliding down when they hang below the bar (floating pill), sliding up
+     when they sit above it (bar style / pinned pill / condensed strip) */
+  .panel.open { animation: slide-in-down 0.4s var(--ease-out) backwards; }
+  .task-hover { animation: slide-in-down 0.34s var(--ease-out) backwards; }
+  body[data-style="bar"] .panel.open,
+  body[data-style="pill"][data-pinned-bottom="true"] .panel.open,
+  body[data-condensed="true"] .panel.open,
+  body[data-style="bar"] .task-hover,
+  body[data-style="pill"][data-pinned-bottom="true"] .task-hover,
+  body[data-condensed="true"] .task-hover { animation-name: slide-in-up; }
+
+  /* Panel content rises in with a soft cascade — innerHTML swaps (loading →
+     AI result) re-trigger it, so async results land with the same grace */
+  .panel-body > * { animation: rise-in 0.36s var(--ease-out) backwards; }
+  .panel-body > *:nth-child(2) { animation-delay: 0.06s; }
+  .panel-body > *:nth-child(3) { animation-delay: 0.11s; }
+  .panel-body > *:nth-child(n+4) { animation-delay: 0.16s; }
+  /* pulse is listed second so it owns opacity; rise-in still drives transform */
+  .panel-loading { animation: rise-in 0.3s var(--ease-out) backwards, pulse 1.4s ease-in-out infinite; }
+
+  /* ── AI result display: loader, cards, interactive lists ──
+     Declared after the .panel-body > * cascade so these animations win the
+     tie on top-level children; staggers are set inline per element. */
+  .ai-loader { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+  .ai-loader-dots { display: flex; gap: 4px; align-items: center; }
+  .ai-loader-dots i {
+    width: 5px; height: 5px; border-radius: 50%; background: var(--w-accent);
+    animation: ai-dot 1.1s ease-in-out infinite;
+  }
+  .ai-loader-dots i:nth-child(2) { animation-delay: 0.14s; }
+  .ai-loader-dots i:nth-child(3) { animation-delay: 0.28s; }
+  .ai-loader-label { font-size: 11px; color: var(--w-text-idle); font-style: italic; animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes ai-dot {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.45; }
+    35%      { transform: translateY(-4px) scale(1.3); opacity: 1; }
+  }
+  @keyframes ai-rise {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes ai-pop {
+    0%   { opacity: 0; transform: scale(0.4); }
+    60%  { opacity: 1; transform: scale(1.18); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .ai-card {
+    border-radius: 8px; padding: 7px 9px; margin: 0 0 6px;
+    background: var(--w-dim); border: 1px solid var(--w-divider);
+    border-left: 2px solid var(--w-accent);
+    animation: ai-rise 0.45s var(--ease-spring) backwards;
+  }
+  .ai-card-green { border-left-color: #4ade80; }
+  .ai-card-amber { border-left-color: #fbbf24; }
+  .ai-card-label, .ai-section-label {
+    display: block; font-size: 8.5px; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--w-accent); margin-bottom: 3px;
+  }
+  .ai-section-label { margin: 8px 0 4px; animation: ai-rise 0.4s var(--ease-spring) backwards; }
+  .ai-card-green .ai-card-label { color: #4ade80; }
+  .ai-card-amber .ai-card-label { color: #fbbf24; }
+  .ai-card-body { font-size: 11.5px; color: var(--w-text); line-height: 1.45; }
+  .ai-intro { font-size: 11px; color: var(--w-text-mid); font-style: italic; margin-bottom: 7px; }
+
+  /* Inspire: the quote reveals word by word, author and impact follow */
+  .ai-quote { font-size: 13px; font-style: italic; color: var(--w-text); line-height: 1.55; margin: 2px 0 0; }
+  .ai-quote .qw { display: inline-block; animation: ai-word 0.45s var(--ease-out) backwards; }
+  .ai-quote-mark { color: var(--w-accent); font-style: normal; }
+  @keyframes ai-word {
+    from { opacity: 0; transform: translateY(5px); filter: blur(2px); }
+    to   { opacity: 1; transform: none; filter: none; }
+  }
+
+  /* Stuck: quick-win chips + expandable complication cards */
+  .ai-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .ai-chip {
+    font-size: 10.5px; color: #4ade80; background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.25); border-radius: 999px; padding: 3px 9px;
+    animation: ai-pop 0.4s var(--ease-spring) backwards;
+  }
+  .stuck-comp {
+    border: 1px solid var(--w-divider); border-radius: 8px; margin-bottom: 5px;
+    background: var(--w-dim); overflow: hidden;
+    animation: ai-rise 0.45s var(--ease-spring) backwards;
+  }
+  .stuck-comp-head {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    padding: 6px 9px; font-size: 11px; color: var(--w-text); text-align: left; line-height: 1.35;
+  }
+  .stuck-comp-head:hover { color: var(--w-accent); }
+  .stuck-comp-chev {
+    margin-left: auto; flex-shrink: 0; font-size: 8px; color: var(--w-text-faint);
+    transition: transform 0.3s var(--ease-out);
+  }
+  .stuck-comp.open .stuck-comp-chev { transform: rotate(180deg); }
+  .stuck-comp-body { max-height: 0; overflow: hidden; transition: max-height 0.32s var(--ease-out); }
+  .stuck-comp.open .stuck-comp-body { max-height: 220px; }
+  .stuck-comp-rows { padding: 0 9px 7px; display: flex; flex-direction: column; gap: 5px; }
+  .stuck-comp-row { font-size: 10.5px; line-height: 1.4; color: var(--w-text-mid); }
+  .stuck-comp-row b {
+    display: block; font-size: 8.5px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--w-accent);
+  }
+  .stuck-comp-row b.fix { color: #4ade80; }
+  .stuck-comp-row b.angle { color: #fbbf24; }
+
+  /* Strategy: tickable steps that fill a progress bar */
+  .strategy-progress {
+    height: 3px; border-radius: 999px; background: var(--w-divider);
+    margin: 2px 0 7px; overflow: hidden;
+    animation: ai-rise 0.4s var(--ease-spring) 0.12s backwards;
+  }
+  .strategy-progress-fill {
+    height: 100%; width: 0; border-radius: inherit;
+    background: linear-gradient(90deg, var(--w-accent), #4ade80);
+    transition: width 0.5s var(--ease-out);
+  }
+  .strategy-steps { list-style: none; display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .strategy-step {
+    display: flex; align-items: flex-start; gap: 7px; padding: 4px 6px;
+    border-radius: 6px; cursor: pointer; transition: background 0.15s;
+    animation: ai-rise 0.4s var(--ease-spring) backwards;
+  }
+  .strategy-step:hover { background: var(--w-dim); }
+  .strategy-step-tick {
+    flex-shrink: 0; width: 14px; height: 14px; margin-top: 1px; border-radius: 50%;
+    border: 1.5px solid var(--w-text-faint); font-size: 9px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    color: transparent; transition: border-color 0.15s, background 0.15s;
+  }
+  .strategy-step:hover .strategy-step-tick { border-color: var(--w-accent); }
+  .strategy-step.done .strategy-step-tick {
+    background: #4ade80; border-color: #4ade80; color: rgba(0,0,0,0.72);
+    animation: ai-pop 0.35s var(--ease-spring);
+  }
+  .strategy-step-text { flex: 1; font-size: 11.5px; line-height: 1.4; color: var(--w-text); transition: color 0.2s; }
+  .strategy-step.done .strategy-step-text { color: var(--w-text-idle); text-decoration: line-through; }
+  .strategy-step .explore-item-add { opacity: 0; transition: opacity 0.15s; }
+  .strategy-step:hover .explore-item-add,
+  .strategy-step .explore-item-add:disabled { opacity: 1; }
+
+  /* Success flash (prompt copied / opened in Claude or GPT) */
+  .ai-success { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-size: 12px; color: #4ade80; }
+  .ai-success-ring {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.4);
+    display: flex; align-items: center; justify-content: center; font-size: 10px;
+    animation: ai-pop 0.45s var(--ease-spring);
+  }
+
+  /* Added-as-task buttons morph to a ✓ with a pop */
+  .explore-item-add:disabled { animation: ai-pop 0.35s var(--ease-spring); }
+
+  /* Assist-btn suggest pulse (shown when distraction/park count is high) */
+  @keyframes assist-suggest { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.5)} 55%{box-shadow:0 0 0 6px rgba(74,222,128,0)} }
+  .assist-btn.suggest { animation: assist-suggest 2.6s ease-in-out infinite; }
+
+  /* Stuck panel: block-type pills */
+  .stuck-type-btns { display:flex; gap:4px; margin:4px 0 5px; flex-wrap:wrap; }
+  .stuck-type-btn { font-size:10px; padding:2px 9px; border-radius:999px; border:1px solid var(--w-divider); background:var(--w-dim); color:var(--w-text-idle); cursor:pointer; transition:all 0.15s; }
+  .stuck-type-btn.active { border-color:var(--w-accent); color:var(--w-accent); background:rgba(74,222,128,0.08); }
+  .stuck-helper { margin-top:6px; }
+  .stuck-help-btn { font-size:10px; padding:3px 12px; border-radius:5px; border:1px solid var(--w-accent); background:rgba(74,222,128,0.06); color:var(--w-accent); cursor:pointer; margin-top:4px; transition:all 0.15s; }
+  .stuck-help-btn:hover { background:rgba(74,222,128,0.14); }
+  .stuck-detail-result { margin-top:6px; }
+
+  /* Chip + button (quick wins) */
+  .ai-chip-add { background:none; border:none; color:rgba(74,222,128,0.55); cursor:pointer; font-size:10px; padding:0 3px; line-height:1; vertical-align:middle; transition:color 0.15s; }
+  .ai-chip-add:hover { color:#4ade80; }
+  .ai-chip-add:disabled { color:var(--w-text-faint); cursor:default; }
+
+  /* Strategy: convert-all button */
+  .strategy-add-all { font-size:10px; color:var(--w-text-idle); background:none; border:1px solid var(--w-divider); border-radius:4px; cursor:pointer; padding:3px 12px; margin-bottom:5px; transition:all 0.15s; width:100%; text-align:center; }
+  .strategy-add-all:hover { color:var(--w-accent); border-color:rgba(74,222,128,0.3); }
+  .strategy-add-all:disabled { color:var(--w-text-faint); cursor:default; }
+
+  /* Recap panel stats */
+  .recap-stat { display:flex; justify-content:space-between; align-items:center; padding:4px 2px; border-bottom:1px solid var(--w-divider); font-size:11px; color:var(--w-text-mid); animation:ai-rise 0.4s var(--ease-spring) backwards; }
+  .recap-stat-num { font-size:13px; font-weight:700; color:var(--w-accent); }
+
+  /* Error retry button */
+  .error-retry-btn { display:inline-block; margin-top:6px; font-size:10px; padding:3px 12px; border-radius:4px; border:1px solid var(--w-divider); background:var(--w-dim); color:var(--w-text-idle); cursor:pointer; transition:all 0.15s; }
+  .error-retry-btn:hover { color:var(--w-text); border-color:rgba(99,102,241,0.4); background:rgba(99,102,241,0.08); }
+
+  /* Refresh cached-result button */
+  .ai-refresh-btn { font-size:9px; color:var(--w-text-faint); background:none; border:none; cursor:pointer; padding:0 5px; vertical-align:middle; transition:color 0.15s; }
+  .ai-refresh-btn:hover { color:var(--w-accent); }
+
+  /* Analyse + Explore lists get the same staggered entrances */
+  .analyse-sugs li { animation: ai-rise 0.4s var(--ease-spring) backwards; }
+  .analyse-mode-btn {
+    animation: ai-pop 0.4s var(--ease-spring) backwards;
+    transition: background 0.15s, color 0.15s, transform 0.2s var(--ease-spring);
+  }
+  .analyse-mode-btn:nth-child(2) { animation-delay: 0.05s; }
+  .analyse-mode-btn:nth-child(3) { animation-delay: 0.1s; }
+  .analyse-mode-btn:nth-child(4) { animation-delay: 0.15s; }
+  .analyse-mode-btn:hover { transform: translateY(-1px); }
+  .explore-section { animation: ai-rise 0.4s var(--ease-spring) backwards; }
+  .explore-list li { animation: ai-rise 0.35s var(--ease-out) backwards; }
+  .explore-list li:nth-child(2) { animation-delay: 0.05s; }
+  .explore-list li:nth-child(3) { animation-delay: 0.1s; }
+  .explore-list li:nth-child(4) { animation-delay: 0.15s; }
+  .explore-item-text { transition: color 0.15s, transform 0.2s var(--ease-out); }
+  .explore-item-text:hover { transform: translateX(3px); }
+
+  /* Saved ✓ slides in beside the footer buttons */
+  .panel-saved { transform: translateX(6px); transition: opacity 0.25s ease, transform 0.25s var(--ease-out); }
+  .panel-saved.show { transform: none; }
+
+  /* Celebration overlay settles in, content cascades */
+  .celebration-overlay.active { animation: celeb-in 0.38s var(--ease-out); }
+  #celebration-content > * { animation: rise-in 0.34s var(--ease-out) backwards; }
+  #celebration-content > *:nth-child(2) { animation-delay: 0.07s; }
+  #celebration-content > *:nth-child(3) { animation-delay: 0.13s; }
+  #celebration-content > *:nth-child(4) { animation-delay: 0.19s; }
+
+  /* Timer-complete chip pops */
+  .timer-complete-chip.visible { animation: chip-pop 0.3s var(--ease-spring); }
+
+  /* Status dot breathes while a session is running */
+  .dot:not(.paused) { animation: dot-breathe 2.8s ease-in-out infinite; }
+
+  /* Buttons: springy transform, instant press, gentle hover lift.
+     :hover lift and :active squash share the transform property, so the
+     :active rules are re-declared here AFTER the lifts to keep press
+     feedback winning while both states apply. */
+  .action-btn, .play-btn, .done-btn, .assist-btn, .assist-fan-item, .panel-btn {
+    transition: transform 0.22s var(--ease-spring), background-color 0.16s ease,
+                color 0.16s ease, border-color 0.16s ease;
+  }
+  .action-btn:hover, .play-btn:hover, .done-btn:hover, .assist-btn:hover { transform: translateY(-1px); }
+  .assist-fan-item:hover { transform: translateY(-2px); }
+  .action-btn:active, .play-btn:active { transform: scale(0.88); transition-duration: 0.06s; }
+  .done-btn:active, .assist-btn:active, .assist-fan-item:active { transform: scale(0.92); transition-duration: 0.06s; }
+  .panel-btn:active { transform: scale(0.94); transition-duration: 0.06s; }
+
+  /* Pop-ups are revealed by an async native window resize (IPC → setBounds →
+     compositor), which can land well after the .open class flips — the
+     animation would finish while the new pixels were still clipped, reading
+     as an instant snap. The renderer holds entrances paused on their
+     invisible first frame until the resize event arrives (or a short
+     fallback elapses), then lets them play on visible pixels.
+     Deliberately no prefers-reduced-motion override: Windows' "animation
+     effects off" setting maps to it and silently zeroes every entrance. */
+  body[data-anim-hold="true"] .panel.open,
+  body[data-anim-hold="true"] .panel-body > *,
+  body[data-anim-hold="true"] .panel-body *,
+  body[data-anim-hold="true"] .task-hover,
+  body[data-anim-hold="true"] .assist-fan-item,
+  body[data-anim-hold="true"] .celebration-overlay.active,
+  body[data-anim-hold="true"] #celebration-content > * {
+    animation-play-state: paused;
+  }
+
+  /* ── Button tooltip (JS-positioned, fixed — not clipped by overflow:hidden) ── */
+  #btn-tooltip {
+    position: fixed;
+    background: var(--w-bg);
+    border: 1px solid var(--w-border);
+    color: var(--w-text-mid);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+    padding: 4px 9px;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    z-index: 9999;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  }
+  #btn-tooltip.visible { opacity: 1; }
+</style>
+</head>
+<body data-style="pill">
+
+<div id="btn-tooltip"></div>
+<div class="wrapper">
+  <div class="main-bar" id="main-bar">
+    <div class="drag-zone" id="drag-zone">
+      <span class="dot paused" id="dot"></span>
+      <span class="task-text idle" id="task"><span class="task-inner" id="task-inner">No active task</span><span class="task-measure" id="task-measure" aria-hidden="true"></span></span>
+    </div>
+    <button class="done-btn hidden" id="done-btn" title="Mark task done">
+      <span id="done-check">□</span><span>Done</span>
+    </button>
+    <div class="actions-right">
+      <span class="timer-text idle" id="timer">—:——</span>
+      <div class="timer-complete-chip" id="timer-complete">
+        Timer Complete <button class="timer-complete-dismiss" id="timer-dismiss">dismiss</button>
+      </div>
+      <button class="play-btn" id="play-btn" title="Play / Pause">▶</button>
+      <div class="actions">
+        <button class="action-btn" data-action="motivate" title="Motivate">
+          <span>✦</span><span class="btn-label">Motivate</span>
+        </button>
+        <button class="action-btn" data-action="park" title="Park Thought">
+          <span>✎</span><span class="btn-label">Park Thought</span>
+        </button>
+        <button class="action-btn" data-action="distract" title="Log Distraction">
+          <span>⊘</span><span class="btn-label">Log Distraction</span>
+        </button>
+        <button class="action-btn" data-action="stuck" title="I'm Stuck">
+          <span>?</span><span class="btn-label">I'm Stuck</span>
+        </button>
+      </div>
+      <button class="capture-bar-btn" id="widget-capture-btn" title="Capture">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><circle cx="9" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg><span class="btn-label">Capture</span>
+      </button>
+      <button class="assist-btn" id="open-app-btn" title="Toggle App"><span>⌂</span><span>App</span></button>
+      <button class="assist-btn" id="assist-btn" title="Assist"><span>✦</span><span>Assist</span></button>
+      <button class="assist-btn automate-btn" id="ai-autopilot-btn" title="AI-Autopilot: pick Window-Tasks (scan the active window) or Goal-Tasks (plan across every window toward your goal)"><span>⚡</span><span>AI-Autopilot</span></button>
+      <div class="snap-group">
+        <button class="action-btn snap-count-btn" id="snap-btn-1" title="Snap active window beside widget">
+          <span>⊞</span><span class="btn-label">Snap</span>
+        </button>
+        <button class="action-btn snap-count-btn snap-n-btn" id="snap-btn-2" title="Snap 2 windows beside widget">2</button>
+        <button class="action-btn snap-count-btn snap-n-btn" id="snap-btn-3" title="Snap 3 windows beside widget">3</button>
+        <button class="action-btn snap-count-btn snap-n-btn" id="snap-btn-4" title="Snap 4 windows beside widget">4</button>
+        <button class="action-btn" id="pin-bottom-btn" title="Pin to bottom of taskbar">
+          <span>↧</span>
+        </button>
+      </div>
+      <button class="action-btn" id="taskbar-btn" title="Pin to taskbar">⊟</button>
+      <button id="half-btn" title="Half-size strip">◧</button>
+      <button class="close-btn" id="condense-btn" title="Condense to taskbar">▾</button>
+      <button class="close-btn" id="close-btn" title="Minimise to tray">_</button>
+    </div>
+  </div>
+  <div class="task-hover" id="task-hover">
+    <span id="task-hover-text"></span>
+    <button class="assist-btn" id="task-hover-assist" title="Assist"><span>✦</span><span>Assist</span></button>
+    <div class="nudge-section" id="nudge-section">
+      <span class="nudge-msg" id="nudge-msg"></span>
+      <div class="nudge-actions">
+        <button class="nudge-btn nudge-confirm" id="nudge-confirm"></button>
+        <button class="nudge-btn nudge-escape" id="nudge-escape"></button>
+      </div>
+    </div>
+  </div>
+  <div class="assist-fan" id="assist-fan">
+    <button class="assist-fan-item" data-action="breathe" data-tooltip="Guided box breathing to calm and refocus"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1.5 6.5c1.5-3 4-3 5 0 1 3 3.5 3 5 0s3.5-3 5 0"/><path d="M4 11c1-2 2.8-2 3.5 0 .7 2 2.5 2 3.5 0"/></svg></span><span class="assist-fan-label">Breathe</span></button>
+    <button class="assist-fan-item" data-action="park" data-tooltip="Save a stray thought so you can stay on task"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3.5h12a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H7l-4 3.5V11.5H3a.5.5 0 0 1-.5-.5V4a.5.5 0 0 1 .5-.5z"/><circle cx="6.5" cy="8" r=".8" fill="currentColor" stroke="none"/><circle cx="9" cy="8" r=".8" fill="currentColor" stroke="none"/><circle cx="11.5" cy="8" r=".8" fill="currentColor" stroke="none"/></svg></span><span class="assist-fan-label">Park</span></button>
+    <button class="assist-fan-item" data-action="distract" data-tooltip="Log a distraction or interruption"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3.5" y="2" width="11" height="14" rx="1.5"/><line x1="6" y1="6.5" x2="12" y2="6.5"/><line x1="6" y1="9.5" x2="12" y2="9.5"/><line x1="6" y1="12.5" x2="9.5" y2="12.5"/></svg></span><span class="assist-fan-label">Log</span></button>
+    <button class="assist-fan-item" data-action="stuck" data-tooltip="Get tips to help you get unstuck"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><path d="M7.2 7.3a2 2 0 0 1 3.5 1.2c-.3.8-1 1.1-1.7 1.8V11.5"/><circle cx="9" cy="13.5" r=".8" fill="currentColor" stroke="none"/></svg></span><span class="assist-fan-label">Stuck</span></button>
+    <button class="assist-fan-item" data-action="motivate" data-tooltip="Get a motivational boost to keep going"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="currentColor"><path d="M9 1.5 11 7h5.5l-4.5 3.2 1.8 5.5L9 12.5l-4.8 3.2 1.8-5.5L1.5 7H7z"/></svg></span><span class="assist-fan-label">Inspire</span></button>
+    <button class="assist-fan-item" data-action="prompt" data-tooltip="Generate a focused AI prompt for your task"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="9" y1="1.5" x2="9" y2="4.5"/><line x1="9" y1="13.5" x2="9" y2="16.5"/><line x1="1.5" y1="9" x2="4.5" y2="9"/><line x1="13.5" y1="9" x2="16.5" y2="9"/><line x1="3.6" y1="3.6" x2="5.8" y2="5.8"/><line x1="12.2" y1="12.2" x2="14.4" y2="14.4"/><line x1="14.4" y1="3.6" x2="12.2" y2="5.8"/><line x1="5.8" y1="12.2" x2="3.6" y2="14.4"/></svg></span><span class="assist-fan-label">Prompt</span></button>
+    <button class="assist-fan-item" data-action="claude" data-tooltip="Ask Claude for help with your current task"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="4.5" r="2.5"/><circle cx="3.5" cy="13.5" r="2.5"/><circle cx="14.5" cy="13.5" r="2.5"/><line x1="9" y1="7" x2="5" y2="11.2"/><line x1="9" y1="7" x2="13" y2="11.2"/></svg></span><span class="assist-fan-label">Claude</span></button>
+    <button class="assist-fan-item" data-action="chatgpt" data-tooltip="Ask ChatGPT for help with your current task"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h12a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H5.5L3 15V11H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><line x1="6" y1="8" x2="12" y2="8"/></svg></span><span class="assist-fan-label">GPT</span></button>
+    <button class="assist-fan-item" data-action="strategy" data-tooltip="Get a strategic approach for your current task"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="currentColor"><path d="M11.5 1.5 5 11h5l-1.5 6.5L17 8.5h-5.5z"/></svg></span><span class="assist-fan-label">Strategy</span></button>
+    <button class="assist-fan-item" data-action="explore" data-tooltip="Explore ideas and next steps for your task"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><line x1="9" y1="2" x2="9" y2="4.5"/><line x1="9" y1="13.5" x2="9" y2="16"/><line x1="2" y1="9" x2="4.5" y2="9"/><line x1="13.5" y1="9" x2="16" y2="9"/><circle cx="9" cy="9" r="2"/></svg></span><span class="assist-fan-label">Explore</span></button>
+    <button class="assist-fan-item" id="capture-btn" data-action="capture" data-tooltip="Capture a snapshot of the active window" style="display:none"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="9" cy="9" r="7"/><line x1="9" y1="5.5" x2="9" y2="12.5"/><line x1="5.5" y1="9" x2="12.5" y2="9"/></svg></span><span class="assist-fan-label">Capture</span></button>
+    <button class="assist-fan-item" data-action="recap" data-tooltip="See your session summary — parks, distractions, and notes"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="12" height="14" rx="1.5"/><line x1="6" y1="6" x2="12" y2="6"/><line x1="6" y1="9" x2="12" y2="9"/><line x1="6" y1="12" x2="9" y2="12"/></svg></span><span class="assist-fan-label">Recap</span></button>
+    <button class="assist-fan-item" data-action="analyse" data-tooltip="Analyse your active window or document"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5"/><line x1="11.2" y1="11.2" x2="16" y2="16"/></svg></span><span class="assist-fan-label">Analyse</span></button>
+  </div>
+  <div class="autopilot-menu" id="autopilot-menu">
+    <button class="assist-fan-item autopilot-item" data-action="window" data-tooltip="AI-Window-Tasks: scans the window you're working in, forms detailed tasks from it, and sets up the Do screen"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="currentColor"><path d="M10 1 3 10h4l-1 7 8-10h-4z"/></svg></span><span class="assist-fan-label">Window-Tasks</span></button>
+    <button class="assist-fan-item autopilot-item" data-action="goal" data-tooltip="AI-Goal-Tasks: reads every open window against your current goal, adds the next-step tasks, and opens the plan with the single best next move"><span class="assist-fan-icon"><svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="9" r="7"/><circle cx="9" cy="9" r="3.5"/><circle cx="9" cy="9" r=".6" fill="currentColor" stroke="none"/></svg></span><span class="assist-fan-label">Goal-Tasks</span></button>
+  </div>
+  <div class="celebration-overlay" id="celebration-overlay">
+    <button class="celebration-dismiss-btn" id="celebration-dismiss" title="Dismiss">×</button>
+    <div class="celebration-loading" id="celebration-loading">
+      <span class="celeb-dot"></span><span class="celeb-dot"></span><span class="celeb-dot"></span>
+    </div>
+    <div id="celebration-content" style="display:none;flex-direction:column;gap:8px;flex:1;overflow:hidden;">
+      <div class="celebration-header">
+        <p class="celebration-headline" id="celebration-headline"></p>
+      </div>
+      <p class="celebration-body" id="celebration-body"></p>
+      <div class="celebration-extras" id="celebration-extras"></div>
+      <button class="celebration-next-move" id="celebration-next-move" style="display:none">
+        <span class="celebration-next-label" id="celebration-next-label"></span>
+        <span class="celebration-next-why" id="celebration-next-why"></span>
+      </button>
+    </div>
+  </div>
+  <div class="panel" id="panel">
+    <div class="panel-body" id="panel-body"></div>
+    <div class="panel-footer" id="panel-footer" style="display:none">
+      <span class="panel-saved" id="panel-saved">Saved ✓</span>
+      <button class="panel-btn panel-cancel" id="panel-cancel">cancel</button>
+      <button class="panel-btn" id="panel-save">save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const QUOTES = [
+    { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
+    { text: "You don't have to see the whole staircase, just take the first step.", author: "Martin Luther King Jr." },
+    { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+    { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+    { text: "Either you run the day, or the day runs you.", author: "Jim Rohn" },
+    { text: "Concentrate all your thoughts upon the work in hand.", author: "Alexander Graham Bell" },
+    { text: "Great things are done by a series of small things brought together.", author: "Vincent van Gogh" },
+    { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+    { text: "Push yourself, because no one else is going to do it for you.", author: null },
+  ];
+
+  const PARKED_KEY = 'widget:parked';
+
+  function getWidgetParked() {
+    try { return JSON.parse(localStorage.getItem(PARKED_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveWidgetParked(list) {
+    localStorage.setItem(PARKED_KEY, JSON.stringify(list.slice(0, 50)));
+  }
+
+  function renderParkedList() {
+    var parked = getWidgetParked();
+    if (parked.length === 0) return '';
+    var items = parked.map(function(t, i) {
+      return '<li class="park-saved-item">'
+        + '<span class="park-saved-text">' + escHtml(t.text) + '</span>'
+        + '<button class="park-saved-dismiss" data-idx="' + i + '" title="Dismiss">×</button>'
+        + '</li>';
+    }).join('');
+    return '<p class="park-saved-label">Saved thoughts</p><ul class="park-saved-list">' + items + '</ul>';
+  }
+
+  const STUCK_TIPS = [
+    "Break it into one tiny next step",
+    "Explain the problem out loud (rubber duck)",
+    "Take a 5-minute walk — let your brain reset",
+    "Write what you DO know; the gap becomes clear",
+    "Ask: what is blocking me specifically?",
+  ];
+
+  const dotEl           = document.getElementById('dot');
+  const taskEl          = document.getElementById('task');
+  const taskInnerEl     = document.getElementById('task-inner');
+  const taskMeasureEl   = document.getElementById('task-measure');
+  const taskHoverEl     = document.getElementById('task-hover');
+  const taskHoverTextEl = document.getElementById('task-hover-text');
+  const timerEl         = document.getElementById('timer');
+  const panelEl         = document.getElementById('panel');
+  const panelBodyEl     = document.getElementById('panel-body');
+  const panelFooter     = document.getElementById('panel-footer');
+  const panelSavedEl    = document.getElementById('panel-saved');
+  const doneBtnEl       = document.getElementById('done-btn');
+  const doneCheckEl     = document.getElementById('done-check');
+  const wrapperEl       = document.querySelector('.wrapper');
+  const playBtnEl       = document.getElementById('play-btn');
+  const timerCompleteEl = document.getElementById('timer-complete');
+  const nudgeMsgEl      = document.getElementById('nudge-msg');
+  const nudgeConfirmEl  = document.getElementById('nudge-confirm');
+  const nudgeEscapeEl   = document.getElementById('nudge-escape');
+
+  let currentAction = null;
+  let pendingAI = {};
+  let reqCounter = 0;
+  let doneAnimating = false;
+  let taskFlashing = false;
+  let hoverExpanded = false;
+  let hoverTimer = null;
+  let currentNudge = null;
+  let nudgeAutoTimer = null;
+
+  // The condensed strip runs in a dedicated opaque window embedded in the
+  // taskbar, loaded with #condensed — it renders the compact view permanently.
+  var isCondensedWindow = location.hash === '#condensed';
+  if (isCondensedWindow) {
+    document.body.setAttribute('data-condensed', 'true');
+  }
+
+  var assistBtnEl = document.getElementById('assist-btn');
+  var assistFanEl = document.getElementById('assist-fan');
+  var assistOpen = false;
+  var condensedStripH = 0;
+  var currentTaskText = null;
+  var currentContextTaskText = null;
+  var breatheTimer = null;
+
+  // Actions that build on the active task (smart prompt / strategy)
+  var ASSIST_NEEDS_TASK = { prompt: true, claude: true, chatgpt: true, strategy: true };
+
+  var BREATHE_PHASES = [
+    { key: 'in',       label: 'Breathe In'  },
+    { key: 'hold-in',  label: 'Hold'        },
+    { key: 'out',      label: 'Breathe Out' },
+    { key: 'hold-out', label: 'Hold'        },
+  ];
+
+  function stopBreathing() {
+    clearInterval(breatheTimer);
+    breatheTimer = null;
+  }
+
+  // 4-4-4-4 box breathing, mirroring the Do! screen's breathing guide
+  function startBreathing() {
+    stopBreathing();
+    var idx = 0;
+    var remaining = 4;
+    function apply() {
+      var circle = document.getElementById('breathe-circle');
+      if (!circle) { stopBreathing(); return; }
+      circle.className = 'breathe-circle phase-' + BREATHE_PHASES[idx].key;
+      document.getElementById('breathe-label').textContent = BREATHE_PHASES[idx].label;
+      document.getElementById('breathe-count').textContent = remaining;
+    }
+    apply();
+    breatheTimer = setInterval(function() {
+      remaining--;
+      if (remaining <= 0) {
+        idx = (idx + 1) % BREATHE_PHASES.length;
+        remaining = 4;
+      }
+      apply();
+    }, 1000);
+  }
+
+  // Grow / restore the condensed strip window upward. The strip's base height
+  // never changes while embedded, so it is captured once on the first growth —
+  // re-reading innerHeight on later cycles races the async native resize
+  // (fan→panel transitions happen while the window is still grown).
+  function setCondensedGrow(extra) {
+    if (extra > 0 && !condensedStripH) {
+      condensedStripH = window.innerHeight;
+      document.documentElement.style.setProperty('--strip-h', condensedStripH + 'px');
+    }
+    if (extra > 0) document.body.setAttribute('data-grown', 'true');
+    else document.body.removeAttribute('data-grown');
+    window.widget && window.widget.setHoverExpand(extra);
+  }
+
+  // Grow / restore the window for the assist fan: the condensed strip goes
+  // through the anchored-strip path; the bar style grows via the plain
+  // hover-expand path (which already grows upward for bar).
+  function assistGrow(extra) {
+    if (isCondensedWindow) setCondensedGrow(extra);
+    else window.widget && window.widget.setHoverExpand(extra);
+  }
+
+  function openAssistFan() {
+    if (assistOpen) return;
+    closeAutopilotMenu(true); // mutually exclusive — keep the window grown
+    var style = document.body.getAttribute('data-style');
+    // Clear the hover flyout state WITHOUT resizing to base height first —
+    // the window grows straight to the fan height (no shrink/grow bounce)
+    clearTimeout(hoverTimer);
+    hoverTimer = null;
+    clearTimeout(collapseTimer);
+    collapseTimer = null;
+    hoverExpanded = false;
+    document.body.removeAttribute('data-hover-expand');
+    holdEntranceUntilResize();
+    document.body.setAttribute('data-assist-open', 'true');
+    assistOpen = true;
+    assistBtnEl.classList.add('active');
+    // Sidebar's window is already full height — the fan shows inline, no growth
+    if (!isCondensedWindow && style === 'sidebar') return;
+    assistGrow(Math.min(220, assistFanEl.offsetHeight));
+  }
+
+  // keepGrow: when a fan option opens the panel the window stays grown and the
+  // panel sizing (resize observer / main-process panel bounds) takes over —
+  // no bounce to base height.
+  function closeAssistFan(keepGrow) {
+    if (!assistOpen) return;
+    assistOpen = false;
+    document.body.removeAttribute('data-assist-open');
+    assistBtnEl.classList.remove('active');
+    if (!keepGrow) assistGrow(0);
+  }
+
+  let collapseTimer = null;
+
+  function collapseTaskHover() {
+    clearTimeout(hoverTimer);
+    hoverTimer = null;
+    clearTimeout(collapseTimer);
+    collapseTimer = null;
+    if (!hoverExpanded) return;
+    hoverExpanded = false;
+    document.body.removeAttribute('data-hover-expand');
+    if (isCondensedWindow) setCondensedGrow(0);
+    else window.widget && window.widget.setHoverExpand(0);
+  }
+
+  function expandTaskHover() {
+    if (hoverExpanded) return;
+    var style = document.body.getAttribute('data-style');
+    var condensed = document.body.getAttribute('data-condensed') === 'true';
+    if (style === 'sidebar' && !condensed) return; // sidebar already wraps task text
+    if (panelEl.classList.contains('open')) return;
+    if (assistOpen) return;
+    if (document.getElementById('celebration-overlay').classList.contains('active')) return;
+    // In the taskbar strip the flyout always opens — live tracing showed real
+    // tasks hover within a couple of px of the container width, so any
+    // truncation gate is a coin-flip there. The pill keeps the gate, measured
+    // via the hidden span (the visible line is ellipsized, so its own widths
+    // are useless for this).
+    if (!condensed) {
+      taskMeasureEl.textContent = taskInnerEl.textContent;
+      if (taskMeasureEl.getBoundingClientRect().width <= taskEl.getBoundingClientRect().width + 2) return;
+    }
+    taskHoverTextEl.textContent = taskInnerEl.textContent;
+    holdEntranceUntilResize();
+    document.body.setAttribute('data-hover-expand', 'true');
+    hoverExpanded = true;
+    var dh = Math.min(160, taskHoverEl.offsetHeight);
+    if (condensed) setCondensedGrow(dh);
+    else window.widget && window.widget.setHoverExpand(dh);
+  }
+
+  function escHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Entrance animations are held paused (CSS: [data-anim-hold]) until the
+  // async native window growth lands — its resize event releases them, so the
+  // animation plays on visible pixels instead of finishing while clipped.
+  // The fallback timer covers opens that don't resize the window (e.g. the
+  // fan→panel transition, which keeps the grown bounds).
+  var animHoldTimer = null;
+  function releaseEntranceHold() {
+    clearTimeout(animHoldTimer);
+    animHoldTimer = null;
+    requestAnimationFrame(function() {
+      document.body.removeAttribute('data-anim-hold');
+    });
+  }
+  function holdEntranceUntilResize() {
+    document.body.setAttribute('data-anim-hold', 'true');
+    clearTimeout(animHoldTimer);
+    animHoldTimer = setTimeout(releaseEntranceHold, 150);
+  }
+  window.addEventListener('resize', function() {
+    if (animHoldTimer) releaseEntranceHold();
+  });
+
+  function callWidgetAI(type, extra) {
+    return new Promise(function(resolve, reject) {
+      var requestId = 'w' + (++reqCounter);
+      pendingAI[requestId] = { resolve: resolve, reject: reject };
+      var payload = { requestId: requestId, type: type };
+      if (extra) { for (var k in extra) payload[k] = extra[k]; }
+      window.widget && window.widget.callAI(payload);
+      setTimeout(function() {
+        if (pendingAI[requestId]) {
+          delete pendingAI[requestId];
+          reject(new Error('timeout'));
+        }
+      }, 30000);
+    });
+  }
+
+  function fmt(s) {
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  function trunc(text, max) {
+    return text && text.length > max ? text.slice(0, max) + '…' : text;
+  }
+
+  // ── Nudge ─────────────────────────────────────────────────────────────────
+
+  function dismissNudge() {
+    clearTimeout(nudgeAutoTimer);
+    nudgeAutoTimer = null;
+    currentNudge = null;
+    document.body.removeAttribute('data-nudge');
+    window.widget && window.widget.nudgeDismiss();
+    collapseTaskHover();
+  }
+
+  function applyNudge(nudge) {
+    if (currentNudge && currentNudge.message === nudge.message) return;
+    currentNudge = nudge;
+    nudgeMsgEl.textContent = nudge.message;
+    nudgeConfirmEl.textContent = nudge.confirmText;
+    nudgeEscapeEl.textContent = nudge.escapeText;
+    document.body.setAttribute('data-nudge', 'true');
+    taskHoverTextEl.textContent = taskInnerEl.textContent;
+    // Mark expanded before rAF so collapseTaskHover recognises the state
+    document.body.setAttribute('data-hover-expand', 'true');
+    hoverExpanded = true;
+    // Measure after the DOM paints so offsetHeight includes the nudge section
+    requestAnimationFrame(function() {
+      holdEntranceUntilResize();
+      var isCondensed = document.body.getAttribute('data-condensed') === 'true';
+      var dh = Math.min(180, taskHoverEl.offsetHeight);
+      if (isCondensed) setCondensedGrow(dh);
+      else window.widget && window.widget.setHoverExpand(dh);
+    });
+    // Auto-dismiss after 10 s if no interaction
+    clearTimeout(nudgeAutoTimer);
+    nudgeAutoTimer = setTimeout(dismissNudge, 10000);
+  }
+
+  nudgeConfirmEl.addEventListener('click', function() {
+    if (!currentNudge) return;
+    var wasConfirm = true;
+    dismissNudge();
+    // "Keep going" → restart the timer for the same task
+    if (wasConfirm) window.widget && window.widget.toggleTimer();
+  });
+
+  nudgeEscapeEl.addEventListener('click', function() {
+    if (!currentNudge) return;
+    dismissNudge();
+    // "Done with it" → mark the current task done
+    window.widget && window.widget.taskDone();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // AI-Automate round-trip state: set on click, cleared by the app's
+  // explicit completion signal (widget:automate-done) — the safety timer
+  // only covers a dead main window. automateFlashPending keeps the
+  // chosen-task flash working when the done signal beats the task push.
+  var automateWaiting = false;
+  var automateTimer = null;
+  var automateFlashPending = false;
+
+  function update(state) {
+    var task      = state.task || null;
+    var secs      = state.seconds || 0;
+    var isRunning = !!state.running;
+    var mode      = state.mode || 'focus';
+    var isAlarm   = !!state.alarm;
+    currentTaskText = task;
+    currentContextTaskText = state.contextTask || null;
+
+    // Incoming nudge from the model — show confirm-or-correct prompt
+    if (state.nudge && !isRunning) {
+      applyNudge(state.nudge);
+    } else if (!state.nudge && currentNudge) {
+      dismissNudge();
+    }
+
+    // Show/hide capture button in assist fan
+    var captureBtnEl = document.getElementById('capture-btn');
+    if (captureBtnEl) {
+      captureBtnEl.style.display = (currentContextTaskText && !task) ? '' : 'none';
+    }
+
+    if (!taskFlashing) {
+      var taskText, taskClass;
+      if (task) {
+        taskText  = task;
+        taskClass = 'task-text';
+      } else if (currentContextTaskText) {
+        taskText  = currentContextTaskText;
+        taskClass = 'task-text context-inferred';
+      } else {
+        taskText  = 'No active task';
+        taskClass = 'task-text idle';
+      }
+      if (taskInnerEl.textContent !== taskText) {
+        taskInnerEl.textContent = taskText;
+        if (hoverExpanded) taskHoverTextEl.textContent = taskText;
+      }
+      if (taskEl.className !== taskClass) taskEl.className = taskClass;
+
+      // AI-Automate answer arrived: flash the chosen task in the bar
+      if ((automateWaiting || automateFlashPending) && task) {
+        automateFlashPending = false;
+        finishAutomate();
+        taskFlashing = true;
+        taskEl.className = taskClass + ' next-task-flash';
+        setTimeout(function() {
+          taskFlashing = false;
+          taskEl.classList.remove('next-task-flash');
+        }, 2000);
+      }
+    }
+
+    var timerText, timerClass;
+    if (isAlarm) {
+      // Chip already reads "Timer Complete"; hide the redundant 0:00 so the
+      // green timer text doesn't crowd the chip and the Done button.
+      timerText  = '0:00';
+      timerClass = 'timer-text complete-hidden';
+      timerCompleteEl.classList.add('visible');
+    } else {
+      timerCompleteEl.classList.remove('visible');
+      if (secs > 0) {
+        timerText  = fmt(secs);
+        timerClass = 'timer-text' + (mode === 'break' ? ' break' : '');
+      } else {
+        timerText  = '—:——';
+        timerClass = 'timer-text idle';
+      }
+    }
+    if (timerEl.textContent !== timerText) timerEl.textContent = timerText;
+    if (timerEl.className  !== timerClass) timerEl.className  = timerClass;
+
+    var dotClass = 'dot' + (isRunning ? (mode === 'break' ? ' break' : '') : ' paused');
+    if (dotEl.className !== dotClass) dotEl.className = dotClass;
+
+    if (!doneAnimating) {
+      doneBtnEl.classList.toggle('hidden', !task);
+    }
+
+    playBtnEl.textContent = isRunning ? '⏸' : '▶';
+    playBtnEl.classList.toggle('running', isRunning);
+    playBtnEl.title = isRunning ? 'Pause' : 'Play';
+
+    // Suggest-open pulse: throttled to avoid localStorage reads every second
+    var nowTs = Date.now();
+    if (nowTs - lastAssistPulseCheck > 30000) {
+      lastAssistPulseCheck = nowTs;
+      var dc = getSessionDistractCount();
+      var pc = getWidgetParked().length;
+      assistBtnEl.classList.toggle('suggest', !assistOpen && (dc >= 3 || pc >= 4));
+    }
+  }
+
+  function getInput() {
+    return document.getElementById('panel-input');
+  }
+
+  // ── AI result rendering helpers ──
+  function aiLoaderHtml(label) {
+    return '<div class="ai-loader"><span class="ai-loader-dots"><i></i><i></i><i></i></span>'
+      + '<span class="ai-loader-label">' + escHtml(label) + '</span></div>';
+  }
+
+  function aiCardHtml(variant, label, bodyHtml, delay) {
+    return '<div class="ai-card' + (variant ? ' ai-card-' + variant : '') + '"'
+      + (delay ? ' style="animation-delay:' + delay + 's"' : '') + '>'
+      + (label ? '<span class="ai-card-label">' + escHtml(label) + '</span>' : '')
+      + '<div class="ai-card-body">' + bodyHtml + '</div></div>';
+  }
+
+  function aiSuccessHtml(message) {
+    return '<div class="ai-success"><span class="ai-success-ring">✓</span>' + escHtml(message) + '</div>';
+  }
+
+  // Quote reveals word by word; author fades in once the last word lands.
+  function quoteRevealHtml(text, author) {
+    var words = String(text).trim().split(/\s+/);
+    var spans = words.map(function(w, i) {
+      return '<span class="qw" style="animation-delay:' + (0.15 + i * 0.04).toFixed(2) + 's">' + escHtml(w) + '</span>';
+    }).join(' ');
+    var authorDelay = (0.35 + words.length * 0.04).toFixed(2);
+    return '<p class="ai-quote"><span class="ai-quote-mark">“</span>' + spans + '<span class="ai-quote-mark">”</span></p>'
+      + (author ? '<p class="panel-author" style="animation-delay:' + authorDelay + 's">— ' + escHtml(author) + '</p>' : '');
+  }
+
+  // ── Quote-repeat prevention ──────────────────────────────────────────────
+  var RECENT_QUOTE_AUTHORS_KEY = 'widget:recentQuoteAuthors';
+  function getRecentQuoteAuthors() {
+    try { return JSON.parse(localStorage.getItem(RECENT_QUOTE_AUTHORS_KEY) || '[]'); } catch { return []; }
+  }
+  function saveRecentQuoteAuthor(author) {
+    if (!author) return;
+    var list = getRecentQuoteAuthors();
+    list = list.filter(function(a) { return a !== author; });
+    list.unshift(author);
+    localStorage.setItem(RECENT_QUOTE_AUTHORS_KEY, JSON.stringify(list.slice(0, 10)));
+  }
+
+  // ── In-session AI result cache ────────────────────────────────────────────
+  var aiResultCache = {};
+  function getAICache(action, key) { return aiResultCache[action + ':' + (key || '')] || null; }
+  function setAICache(action, key, result) {
+    if (result === null) { delete aiResultCache[action + ':' + (key || '')]; return; }
+    aiResultCache[action + ':' + (key || '')] = result;
+  }
+
+  // ── Fan usage tracking ────────────────────────────────────────────────────
+  var FAN_USAGE_KEY = 'widget:fan-usage';
+  function trackFanUsage(action) {
+    try {
+      var map = JSON.parse(localStorage.getItem(FAN_USAGE_KEY) || '{}');
+      map[action] = (map[action] || 0) + 1;
+      localStorage.setItem(FAN_USAGE_KEY, JSON.stringify(map));
+    } catch {}
+  }
+
+  // ── Distraction count for suggest-pulsing ────────────────────────────────
+  function getSessionDistractCount() {
+    try {
+      var d = JSON.parse(localStorage.getItem('hub:widget:distraction') || '[]');
+      var cutoff = Date.now() - 4 * 60 * 60 * 1000;
+      return d.filter(function(x) { return (x.ts || 0) > cutoff; }).length;
+    } catch { return 0; }
+  }
+  var lastAssistPulseCheck = 0;
+
+  // ── Error display with optional retry ────────────────────────────────────
+  var _lastRetryFn = null;
+  function showError(msg, retryFn) {
+    _lastRetryFn = retryFn || null;
+    panelBodyEl.innerHTML = '<p class="panel-error">' + escHtml(msg || 'Something went wrong.')
+      + (retryFn ? '</p><button class="error-retry-btn">↺ Try again</button>' : '</p>');
+    if (retryFn) {
+      var btn = panelBodyEl.querySelector('.error-retry-btn');
+      if (btn) btn.addEventListener('click', retryFn);
+    }
+  }
+
+  function showFallbackQuote() {
+    var q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    panelBodyEl.innerHTML = quoteRevealHtml(q.text, q.author);
+  }
+
+  function showFallbackStuck() {
+    var tips = STUCK_TIPS.map(function(t) { return '<li>' + escHtml(t) + '</li>'; }).join('');
+    panelBodyEl.innerHTML = '<ul class="panel-tips">' + tips + '</ul>'
+      + '<textarea class="panel-input" id="panel-input" rows="2" placeholder="Describe what\'s blocking you…"></textarea>';
+    var inp = getInput();
+    if (inp) { setTimeout(function() { inp.focus(); }, 50); }
+  }
+
+  // ── Explore pop-up panel ──
+  // Compact Idea Explorer: explores the active task (or a typed idea), shows
+  // the five sections, and supports drill-down (click an item to explore it)
+  // with back navigation. The stack keeps earlier results so back is instant.
+  var exploreStack = [];
+  var exploreRootTask = null;
+  // Last analyse scan's suggestions, indexed by the + buttons in the results
+  var analyseSuggestions = [];
+  // Last strategy's steps, indexed by the tickable list and its + buttons
+  var strategySteps = [];
+
+  var EXPLORE_SECTIONS = [
+    { key: 'todaysPossibilities', label: "Today's picks", icon: '⚡' },
+    { key: 'questions',           label: 'Questions',     icon: '?' },
+    { key: 'approaches',          label: 'Approaches',    icon: '→' },
+    { key: 'edgeOfIdea',          label: 'Wild angles',   icon: '✦' },
+    { key: 'risks',               label: 'Watch out for', icon: '!' },
+  ];
+
+  function getExploreItem(secKey, idx) {
+    var top = exploreStack[exploreStack.length - 1];
+    var items = top && top.result && top.result[secKey];
+    return (items && items[idx]) || null;
+  }
+
+  function renderExploreInput() {
+    panelBodyEl.innerHTML =
+      '<textarea class="panel-input" id="panel-input" rows="2" placeholder="An idea, problem, or goal to explore…"></textarea>'
+      + '<button class="panel-btn explore-go" id="explore-go">explore</button>';
+    var inp = getInput();
+    if (inp) { setTimeout(function() { inp.focus(); }, 50); }
+  }
+
+  function runExplore(idea) {
+    panelBodyEl.innerHTML = aiLoaderHtml('Exploring ' + trunc(idea, 40) + '…');
+    callWidgetAI('explore', { idea: idea }).then(function(result) {
+      if (currentAction !== 'explore') return;
+      if (result && (result.todaysPossibilities || result.questions || result.approaches)) {
+        exploreStack.push({ idea: idea, result: result });
+        renderExplore();
+      } else {
+        showError('Could not explore. Check your AI settings.', function() { runExplore(idea); });
+      }
+    }).catch(function(err) {
+      if (currentAction !== 'explore') return;
+      showError(err.message || 'Could not explore.', function() { runExplore(idea); });
+    });
+  }
+
+  function renderExplore() {
+    var top = exploreStack[exploreStack.length - 1];
+    if (!top) { renderExploreInput(); return; }
+    var html = '<div class="explore-head">'
+      + (exploreStack.length > 1 ? '<button class="explore-back" id="explore-back" title="Back">←</button>' : '')
+      + '<span class="explore-idea" title="' + escHtml(top.idea) + '">' + escHtml(trunc(top.idea, 70)) + '</span>'
+      + '</div>';
+    EXPLORE_SECTIONS.forEach(function(sec) {
+      var items = top.result[sec.key];
+      if (!items || !items.length) return;
+      html += '<p class="explore-section">' + sec.icon + ' ' + sec.label + '</p><ul class="explore-list">';
+      items.forEach(function(item, i) {
+        html += '<li class="explore-item">'
+          + '<button class="explore-item-text" data-sec="' + sec.key + '" data-i="' + i + '" title="Explore deeper">'
+          + escHtml(item) + '</button>'
+          + '<button class="explore-item-add" data-sec="' + sec.key + '" data-i="' + i + '" title="Add as task">+</button>'
+          + '</li>';
+      });
+      html += '</ul>';
+    });
+    panelBodyEl.innerHTML = html;
+  }
+
+  function buildRecapHtml() {
+    var cutoff = Date.now() - 4 * 60 * 60 * 1000;
+    var parks = getWidgetParked();
+    var distracts = [];
+    try { distracts = JSON.parse(localStorage.getItem('hub:widget:distraction') || '[]'); } catch {}
+    distracts = distracts.filter(function(d) { return (d.ts || 0) > cutoff; });
+    var stuckLogs = [];
+    try { stuckLogs = JSON.parse(localStorage.getItem('hub:widget:stuck') || '[]'); } catch {}
+    stuckLogs = stuckLogs.filter(function(d) { return (d.ts || 0) > cutoff; });
+
+    var html = '<span class="ai-section-label">Last 4 hours</span>';
+    html += '<div class="recap-stat" style="animation-delay:0.05s"><span>Parks captured</span><span class="recap-stat-num">' + parks.length + '</span></div>';
+    html += '<div class="recap-stat" style="animation-delay:0.1s"><span>Distractions logged</span><span class="recap-stat-num">' + distracts.length + '</span></div>';
+    html += '<div class="recap-stat" style="animation-delay:0.15s"><span>Stuck moments</span><span class="recap-stat-num">' + stuckLogs.length + '</span></div>';
+
+    if (parks.length) {
+      html += '<span class="ai-section-label" style="margin-top:7px">Parked thoughts</span>';
+      parks.slice(0, 4).forEach(function(p) { html += aiCardHtml('', null, escHtml(p.text)); });
+      if (parks.length > 4) html += '<p class="ai-intro">+ ' + (parks.length - 4) + ' more in Park list</p>';
+    }
+    if (distracts.length) {
+      html += '<span class="ai-section-label" style="margin-top:7px">Distractions</span>';
+      distracts.slice(0, 3).forEach(function(d) {
+        html += '<p class="stuck-comp-row">' + escHtml(d.text || '(unnamed)') + '</p>';
+      });
+    }
+    if (!parks.length && !distracts.length && !stuckLogs.length) {
+      html += aiSuccessHtml('Clean session — nothing logged yet.');
+    }
+    return html;
+  }
+
+  function openPanel(action) {
+    collapseTaskHover();
+    closeAssistFan(true);
+    closeAutopilotMenu(true);
+    stopBreathing();
+    currentAction = action;
+
+    document.querySelectorAll('.action-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.action === action);
+    });
+
+    panelSavedEl.classList.remove('show');
+    if (!panelEl.classList.contains('open')) holdEntranceUntilResize();
+    panelEl.classList.add('open');
+    window.widget && window.widget.setPanelOpen(true);
+
+    if (ASSIST_NEEDS_TASK[action] && !currentTaskText) {
+      panelFooter.style.display = 'none';
+      panelBodyEl.innerHTML = '<p class="panel-error">No active task — pick a task in the app first.</p>';
+      setTimeout(function() { if (currentAction === action) closePanel(); }, 1800);
+      return;
+    }
+
+    if (action === 'motivate') {
+      panelFooter.style.display = 'none';
+      var _motivateCacheKey = currentTaskText || '';
+      var _motivateCached = getAICache('motivate', _motivateCacheKey);
+
+      function renderMotivate(result, fromCache) {
+        if (result && result.quote) {
+          var impactDelay = (0.55 + String(result.quote).trim().split(/\s+/).length * 0.04).toFixed(2);
+          var rfHtml = fromCache
+            ? '<button class="ai-refresh-btn" id="motivate-refresh" title="Get a fresh quote">↺ refresh</button>'
+            : '';
+          panelBodyEl.innerHTML = rfHtml + quoteRevealHtml(result.quote, result.author)
+            + (result.impact ? aiCardHtml('', 'Why it matters today', escHtml(result.impact), impactDelay) : '');
+          var rfEl = document.getElementById('motivate-refresh');
+          if (rfEl) rfEl.addEventListener('click', function() {
+            setAICache('motivate', _motivateCacheKey, null);
+            if (currentAction === 'motivate') openPanel('motivate');
+          });
+        } else {
+          showFallbackQuote();
+        }
+      }
+
+      if (_motivateCached) {
+        renderMotivate(_motivateCached, true);
+      } else {
+        panelBodyEl.innerHTML = aiLoaderHtml('Finding your spark…');
+        var _recentAuthors = getRecentQuoteAuthors();
+        callWidgetAI('motivate', { recentAuthors: _recentAuthors }).then(function(result) {
+          if (currentAction !== 'motivate') return;
+          if (result && result.quote) {
+            saveRecentQuoteAuthor(result.author);
+            setAICache('motivate', _motivateCacheKey, result);
+          }
+          renderMotivate(result, false);
+        }).catch(function() {
+          if (currentAction !== 'motivate') return;
+          showFallbackQuote();
+        });
+      }
+
+    } else if (action === 'stuck') {
+      panelFooter.style.display = 'none';
+      var _stuckBlockType = 'start';
+
+      function stuckHelperHtml() {
+        return '<div class="stuck-helper" id="stuck-helper">'
+          + '<span class="ai-section-label" style="margin-top:6px">Get targeted help</span>'
+          + '<div class="stuck-type-btns" id="stuck-type-btns">'
+          + '<button class="stuck-type-btn' + (_stuckBlockType === 'start' ? ' active' : '') + '" data-btype="start">Can\'t start</button>'
+          + '<button class="stuck-type-btn' + (_stuckBlockType === 'big' ? ' active' : '') + '" data-btype="big">Too big</button>'
+          + '<button class="stuck-type-btn' + (_stuckBlockType === 'info' ? ' active' : '') + '" data-btype="info">Missing info</button>'
+          + '</div>'
+          + '<textarea class="panel-input" id="stuck-desc" rows="2" placeholder="Optional: describe what\'s blocking you…"></textarea>'
+          + '<button class="stuck-help-btn" id="stuck-help-btn">Get help →</button>'
+          + '</div>';
+      }
+
+      function renderStuckResult(result, extra) {
+        var html = '';
+        if (extra) html += extra;
+        if (!result) return html;
+        if (result.headline) html += '<p class="ai-intro" style="animation-delay:0s">' + escHtml(result.headline) + '</p>';
+        if (result.recommendation) html += aiCardHtml('', 'Next move', escHtml(result.recommendation), 0.1);
+        (result.complications || []).slice(0, 4).forEach(function(c, i) {
+          var rows = '';
+          if (c.why) rows += '<p class="stuck-comp-row"><b>Why it\'s heavy</b>' + escHtml(c.why) + '</p>';
+          if (c.fix) rows += '<p class="stuck-comp-row"><b class="fix">Quick fix</b>' + escHtml(c.fix) + '</p>';
+          if (c.approach) rows += '<p class="stuck-comp-row"><b class="angle">Smarter angle</b>' + escHtml(c.approach) + '</p>';
+          if (!rows) return;
+          html += '<div class="stuck-comp" style="animation-delay:' + (0.18 + i * 0.07).toFixed(2) + 's">'
+            + '<button class="stuck-comp-head">' + escHtml(trunc(c.task || 'This task', 60))
+            + '<span class="stuck-comp-chev">▼</span></button>'
+            + '<div class="stuck-comp-body"><div class="stuck-comp-rows">' + rows + '</div></div></div>';
+        });
+        if (result.quickWins && result.quickWins.length) {
+          html += '<span class="ai-section-label" style="animation-delay:0.3s">Quick wins — click + to add as a task</span>'
+            + '<div class="ai-chips">'
+            + result.quickWins.slice(0, 3).map(function(q, i) {
+              return '<span class="ai-chip" data-qtext="' + escHtml(q) + '" style="animation-delay:' + (0.36 + i * 0.08).toFixed(2) + 's">'
+                + escHtml(q) + '<button class="ai-chip-add" title="Add as task">+</button></span>';
+            }).join('') + '</div>';
+        }
+        // Targeted help result fields
+        if (result.why) html += aiCardHtml('', 'What\'s blocking you', escHtml(result.why), 0.12);
+        if (result.firstStep) html += aiCardHtml('green', 'First step', escHtml(result.firstStep), 0.2);
+        if (result.reframe) html += aiCardHtml('', 'Reframe', escHtml(result.reframe), 0.28);
+        if (result.fiveMinCommit) html += aiCardHtml('amber', '5-min commit', escHtml(result.fiveMinCommit), 0.36);
+        if (result.principle) html += aiCardHtml('', 'Decomposition', escHtml(result.principle), 0.12);
+        if (result.subTasks && result.subTasks.length) {
+          html += '<span class="ai-section-label" style="animation-delay:0.2s">Sub-tasks</span><ul class="panel-tips">';
+          result.subTasks.forEach(function(s, i) {
+            html += '<li style="animation-delay:' + (0.25 + i * 0.08).toFixed(2) + 's"><span class="analyse-sug-text">'
+              + escHtml((s.text || s) + (s.estimate ? '  (' + s.estimate + ')' : ''))
+              + '</span><button class="explore-item-add stuck-sub-add" data-text="' + escHtml(s.text || s) + '" title="Add as sub-task">+</button></li>';
+          });
+          html += '</ul>';
+        }
+        if (result.startWith) html += aiCardHtml('green', 'Start with', escHtml(result.startWith), 0.32);
+        if (result.gap) html += aiCardHtml('amber', 'What\'s missing', escHtml(result.gap), 0.12);
+        if (result.findIt) html += aiCardHtml('', 'Find it fast', escHtml(result.findIt), 0.2);
+        if (result.unblock) html += aiCardHtml('green', 'Move forward now', escHtml(result.unblock), 0.28);
+        return html;
+      }
+
+      panelBodyEl.innerHTML = aiLoaderHtml('Reading your board…') + stuckHelperHtml();
+      callWidgetAI('stuck').then(function(result) {
+        if (currentAction !== 'stuck') return;
+        var html = renderStuckResult(result, null);
+        html += stuckHelperHtml();
+        panelBodyEl.innerHTML = html || ('<ul class="panel-tips">' + STUCK_TIPS.map(function(t) { return '<li>' + escHtml(t) + '</li>'; }).join('') + '</ul>' + stuckHelperHtml());
+        var descEl = document.getElementById('stuck-desc');
+        if (descEl) setTimeout(function() { descEl.focus(); }, 50);
+      }).catch(function() {
+        if (currentAction !== 'stuck') return;
+        panelBodyEl.innerHTML = '<ul class="panel-tips">' + STUCK_TIPS.map(function(t) { return '<li>' + escHtml(t) + '</li>'; }).join('') + '</ul>' + stuckHelperHtml();
+      });
+
+    } else if (action === 'park') {
+      panelBodyEl.innerHTML = '<textarea class="panel-input" id="panel-input" rows="3" placeholder="Capture the thought to come back to…"></textarea>'
+        + renderParkedList();
+      panelFooter.style.display = 'flex';
+      var inp3 = getInput();
+      if (inp3) { setTimeout(function() { inp3.focus(); }, 50); }
+      panelBodyEl.addEventListener('click', function(e) {
+        var btn = e.target.closest('.park-saved-dismiss');
+        if (!btn) return;
+        var idx = parseInt(btn.dataset.idx, 10);
+        var list = getWidgetParked();
+        list.splice(idx, 1);
+        saveWidgetParked(list);
+        panelBodyEl.querySelector('.park-saved-label') && (panelBodyEl.innerHTML =
+          '<textarea class="panel-input" id="panel-input" rows="3" placeholder="Capture the thought to come back to…"></textarea>'
+          + renderParkedList());
+      });
+    } else if (action === 'breathe') {
+      panelFooter.style.display = 'none';
+      panelBodyEl.innerHTML = '<div class="breathe-wrap">'
+        + '<div class="breathe-circle" id="breathe-circle">'
+        + '<span class="breathe-label" id="breathe-label"></span>'
+        + '<span class="breathe-count" id="breathe-count"></span>'
+        + '</div></div>';
+      startBreathing();
+
+    } else if (action === 'prompt') {
+      panelFooter.style.display = 'none';
+      panelBodyEl.innerHTML = aiLoaderHtml('Building your prompt…');
+      callWidgetAI('prompt').then(function(result) {
+        if (currentAction !== 'prompt') return;
+        if (result && result.prompt) {
+          window.widget && window.widget.copyText && window.widget.copyText(result.prompt);
+          panelBodyEl.innerHTML = aiSuccessHtml('Prompt copied to clipboard');
+          setTimeout(function() { if (currentAction === 'prompt') closePanel(); }, 1400);
+        } else {
+          showError('Could not build the prompt.', function() { openPanel('prompt'); });
+        }
+      }).catch(function(err) {
+        if (currentAction !== 'prompt') return;
+        showError(err.message || 'Could not build the prompt.', function() { openPanel('prompt'); });
+      });
+
+    } else if (action === 'claude' || action === 'chatgpt') {
+      var svcName = action === 'claude' ? 'Claude' : 'ChatGPT';
+      panelFooter.style.display = 'none';
+      panelBodyEl.innerHTML = aiLoaderHtml('Opening ' + svcName + '…');
+      callWidgetAI(action).then(function(result) {
+        if (currentAction !== action) return;
+        if (result && result.tooLong && result.prompt) {
+          window.widget && window.widget.copyText && window.widget.copyText(result.prompt);
+          panelBodyEl.innerHTML = aiSuccessHtml('Prompt too long for a link — copied to clipboard instead.');
+          setTimeout(function() { if (currentAction === action) closePanel(); }, 1800);
+        } else if (result && result.opened) {
+          panelBodyEl.innerHTML = aiSuccessHtml('Opened in ' + svcName);
+          setTimeout(function() { if (currentAction === action) closePanel(); }, 1200);
+        } else {
+          var _openAction = action;
+          showError('Could not open ' + svcName + '.', function() { openPanel(_openAction); });
+        }
+      }).catch(function(err) {
+        if (currentAction !== action) return;
+        var _openAction2 = action;
+        showError(err.message || ('Could not open ' + svcName + '.'), function() { openPanel(_openAction2); });
+      });
+
+    } else if (action === 'strategy') {
+      panelFooter.style.display = 'none';
+      var _stratTickKey = 'widget:strategy-ticks:' + (currentTaskText || '');
+      var _stratCacheKey = currentTaskText || '';
+      var _stratCached = getAICache('strategy', _stratCacheKey);
+
+      function renderStrategy(result, fromCache) {
+        if (!(result && result.headline)) {
+          showError('Could not generate a strategy. Check your AI settings.', function() { openPanel('strategy'); });
+          return;
+        }
+        strategySteps = (result.steps || []).slice(0, 6);
+        var savedTicks = [];
+        try { savedTicks = JSON.parse(localStorage.getItem(_stratTickKey) || '[]'); } catch {}
+        var html = '<p class="ai-intro">' + escHtml(result.headline) + '</p>';
+        if (fromCache) html += '<button class="ai-refresh-btn" id="strategy-refresh" style="margin-bottom:4px">↺ refresh strategy</button>';
+        if (result.firstMove) html += aiCardHtml('', 'First move', escHtml(result.firstMove), 0.08);
+        if (strategySteps.length) {
+          html += '<div class="strategy-progress"><div class="strategy-progress-fill" id="strategy-progress-fill"></div></div>'
+            + '<ul class="strategy-steps">'
+            + strategySteps.map(function(s, i) {
+              var isDone = savedTicks[i] === true;
+              return '<li class="strategy-step' + (isDone ? ' done' : '') + '" data-i="' + i + '" style="animation-delay:' + (0.16 + i * 0.06).toFixed(2) + 's" title="Click to tick off">'
+                + '<span class="strategy-step-tick">✓</span>'
+                + '<span class="strategy-step-text">' + escHtml(s) + '</span>'
+                + '<button class="explore-item-add strategy-step-add" data-i="' + i + '" title="Add as sub-task">+</button>'
+                + '</li>';
+            }).join('') + '</ul>';
+          html += '<button class="strategy-add-all" id="strategy-add-all">Convert all steps to sub-tasks</button>';
+        }
+        if (result.watchOut) html += aiCardHtml('amber', 'Watch out', escHtml(result.watchOut), 0.32);
+        if (result.doneWhenYouSee) html += aiCardHtml('green', 'Done when you see', escHtml(result.doneWhenYouSee), 0.4);
+        panelBodyEl.innerHTML = html;
+        // Restore progress bar
+        var doneCount = savedTicks.filter(Boolean).length;
+        var fill = document.getElementById('strategy-progress-fill');
+        if (fill && strategySteps.length) fill.style.width = Math.round((doneCount / strategySteps.length) * 100) + '%';
+        var rfEl = document.getElementById('strategy-refresh');
+        if (rfEl) rfEl.addEventListener('click', function() {
+          setAICache('strategy', _stratCacheKey, null);
+          if (currentAction === 'strategy') openPanel('strategy');
+        });
+      }
+
+      if (_stratCached) {
+        renderStrategy(_stratCached, true);
+      } else {
+        panelBodyEl.innerHTML = aiLoaderHtml('Mapping the fastest path…');
+        callWidgetAI('strategy').then(function(result) {
+          if (currentAction !== 'strategy') return;
+          if (result && result.headline) setAICache('strategy', _stratCacheKey, result);
+          renderStrategy(result, false);
+        }).catch(function(err) {
+          if (currentAction !== 'strategy') return;
+          showError(err.message || 'Could not generate a strategy.', function() { openPanel('strategy'); });
+        });
+      }
+
+    } else if (action === 'explore') {
+      panelFooter.style.display = 'none';
+      exploreStack = [];
+      exploreRootTask = currentTaskText || null;
+      if (currentTaskText) {
+        runExplore(currentTaskText);
+      } else {
+        renderExploreInput();
+      }
+
+    } else if (action === 'recap') {
+      panelFooter.style.display = 'none';
+      panelBodyEl.innerHTML = buildRecapHtml();
+
+    } else if (action === 'analyse') {
+      panelFooter.style.display = 'none';
+      var analyseModeHtml = '<div class="analyse-mode-btns">'
+        + '<button class="analyse-mode-btn" id="analyse-full">🖥 Whole Screen</button>'
+        + '<button class="analyse-mode-btn" id="analyse-window">🪟 Active Window</button>'
+        + '<button class="analyse-mode-btn" id="analyse-area">✂ Select Area</button>'
+        + '<button class="analyse-mode-btn" id="analyse-document">📄 Document</button>'
+        + '</div>';
+      panelBodyEl.innerHTML = analyseModeHtml;
+
+      function startAnalyse(mode) {
+        panelBodyEl.innerHTML = mode === 'document'
+          ? aiLoaderHtml('Reading your document…')
+          : aiLoaderHtml('Analysing your screen…');
+        var reqId = 'w' + (++reqCounter);
+        pendingAI[reqId] = {
+          resolve: function(result) {
+            if (currentAction !== 'analyse') return;
+            if (result && result.analysis) {
+              analyseSuggestions = (result.suggestions || []).slice(0, 3);
+              var sugs = analyseSuggestions.map(function(s, i) {
+                return '<li style="animation-delay:' + (0.14 + i * 0.07).toFixed(2) + 's">'
+                  + '<span class="analyse-sug-text">' + escHtml(s) + '</span>'
+                  + '<button class="explore-item-add analyse-sug-add" data-i="' + i + '" title="Add as task">+</button></li>';
+              }).join('');
+              panelBodyEl.innerHTML = aiCardHtml('', 'What I see', escHtml(result.analysis))
+                + (sugs
+                  ? '<span class="ai-section-label" style="animation-delay:0.1s">Next actions — click + to add as a task</span>'
+                    + '<ul class="panel-tips analyse-sugs">' + sugs + '</ul>'
+                  : '');
+            } else {
+              panelBodyEl.innerHTML = '<p class="panel-error">No analysis returned. Check your AI settings.</p>';
+            }
+          },
+          reject: function(err) {
+            if (currentAction !== 'analyse') return;
+            var msg = (err && err.message) || 'Analyse failed';
+            if (msg === 'Cancelled') {
+              panelBodyEl.innerHTML = analyseModeHtml;
+              attachAnalyseBtns();
+              return;
+            }
+            panelBodyEl.innerHTML = '<p class="panel-error">' + escHtml(msg) + '</p>';
+          }
+        };
+        // Document mode runs COM extraction (up to 45s) plus a long-context AI call
+        setTimeout(function() {
+          if (pendingAI[reqId]) { delete pendingAI[reqId]; }
+        }, mode === 'document' ? 150000 : 60000);
+        window.widget && window.widget.analyseRequest && window.widget.analyseRequest(mode, currentTaskText || null, reqId);
+      }
+
+      function attachAnalyseBtns() {
+        var fb = document.getElementById('analyse-full');
+        var wb = document.getElementById('analyse-window');
+        var ab = document.getElementById('analyse-area');
+        var db = document.getElementById('analyse-document');
+        if (fb) fb.addEventListener('click', function() { startAnalyse('full'); });
+        if (wb) wb.addEventListener('click', function() { startAnalyse('window'); });
+        if (ab) ab.addEventListener('click', function() { startAnalyse('area'); });
+        if (db) db.addEventListener('click', function() { startAnalyse('document'); });
+      }
+      attachAnalyseBtns();
+
+    } else {
+      panelBodyEl.innerHTML = '<textarea class="panel-input" id="panel-input" rows="3" placeholder="What distracted you?"></textarea>';
+      panelFooter.style.display = 'flex';
+      var inp4 = getInput();
+      if (inp4) { setTimeout(function() { inp4.focus(); }, 50); }
+    }
+  }
+
+  function closePanel() {
+    stopBreathing();
+    // Discard any in-flight AI requests — results will arrive but currentAction is now null
+    pendingAI = {};
+    currentAction = null;
+    panelEl.classList.remove('open');
+    document.querySelectorAll('.action-btn').forEach(function(b) { b.classList.remove('active'); });
+    // Panel-open state first: the main process ignores hover-expand resets
+    // while it still believes the panel is open (bar style).
+    window.widget && window.widget.setPanelOpen(false);
+    if (isCondensedWindow) setCondensedGrow(0);
+    else window.widget && window.widget.setHoverExpand(0);
+  }
+
+  function savePanel() {
+    var inp  = getInput();
+    var text = inp ? inp.value.trim() : '';
+    if (currentAction === 'explore') {
+      if (text) runExplore(text);
+      return;
+    }
+    if (text && currentAction) {
+      var type = currentAction === 'park' ? 'park'
+        : currentAction === 'distract' ? 'distraction'
+        : 'stuck';
+      if (currentAction === 'park') {
+        var list = getWidgetParked();
+        list.unshift({ text: text, ts: Date.now() });
+        saveWidgetParked(list);
+      }
+      window.widget && window.widget.saveItem({ type: type, text: text });
+      panelSavedEl.classList.add('show');
+      setTimeout(closePanel, 900);
+    } else {
+      closePanel();
+    }
+  }
+
+  document.body.setAttribute('data-pinned-bottom', 'false');
+
+  if (window.widget) {
+    window.widget.onUpdate(update);
+    window.widget.onTheme(function(theme) {
+      if (theme && theme !== 'default') {
+        document.documentElement.setAttribute('data-theme', theme);
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    });
+    if (window.widget.onCustomVars) {
+      var WIDGET_VAR_KEYS = ['bg','dim','border','divider','text','text-mid','text-idle','text-faint','accent','glow'];
+      window.widget.onCustomVars(function(vars) {
+        var root = document.documentElement;
+        if (!vars) {
+          for (var j = 0; j < WIDGET_VAR_KEYS.length; j++) {
+            root.style.removeProperty('--w-' + WIDGET_VAR_KEYS[j]);
+          }
+          root.removeAttribute('data-light');
+          return;
+        }
+        var wv = vars._widget || {};
+        var keys = Object.keys(wv);
+        for (var i = 0; i < keys.length; i++) {
+          root.style.setProperty('--w-' + keys[i], wv[keys[i]]);
+        }
+        if (vars._light) {
+          root.setAttribute('data-light', '');
+        } else {
+          root.removeAttribute('data-light');
+        }
+      });
+    }
+    window.widget.onStyle(function(style) {
+      collapseTaskHover();
+      // Main resets the window bounds on style change — just clear fan state
+      closeAssistFan(true);
+      closeAutopilotMenu(true);
+      document.body.setAttribute('data-style', style);
+      if (panelEl.classList.contains('open')) {
+        window.widget.setPanelOpen(false);
+        panelEl.classList.remove('open');
+        document.querySelectorAll('.action-btn').forEach(function(b) { b.classList.remove('active'); });
+        currentAction = null;
+      }
+    });
+    window.widget.onPinBottom(function(pinned) {
+      document.body.setAttribute('data-pinned-bottom', pinned ? 'true' : 'false');
+      pinBottomBtn.classList.toggle('active', pinned);
+    });
+    window.widget.onAIResult(function(data) {
+      var pending = pendingAI[data.requestId];
+      if (!pending) return;
+      delete pendingAI[data.requestId];
+      if (data.error) { pending.reject(new Error(data.error)); }
+      else { pending.resolve(data.result); }
+    });
+  }
+
+  // The window resize when the flyout opens makes Chromium fire a transient
+  // mouseleave on the task text, which used to close the flyout instantly.
+  // So: leaving the task text only cancels a pending expand; an OPEN flyout
+  // collapses when the pointer leaves the whole widget (debounced, and any
+  // pointer activity inside cancels the pending collapse).
+  // Dwell, don't pass through: the timer restarts on every move, so a
+  // pointer sweeping across the strip (e.g. crossing the taskbar to click
+  // an app icon) never opens the flyout — only a paused pointer does.
+  function armTaskHover() {
+    clearTimeout(collapseTimer);
+    collapseTimer = null;
+    clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(expandTaskHover, 350);
+  }
+  taskEl.addEventListener('mouseenter', armTaskHover);
+  taskEl.addEventListener('mousemove', function() {
+    if (!hoverExpanded) armTaskHover();
+  });
+  taskEl.addEventListener('mouseleave', function() {
+    clearTimeout(hoverTimer);
+  });
+
+  // Half-size strip hides the task text entirely, so its hover handlers can
+  // never fire — the visible left area (dot + empty space) takes over as the
+  // hover target. Gated to half mode so the full strip keeps the tighter
+  // task-text-only target.
+  var dragZoneEl = document.getElementById('drag-zone');
+  function isHalfStrip() {
+    return isCondensedWindow && document.body.getAttribute('data-half') === 'true';
+  }
+  dragZoneEl.addEventListener('mouseenter', function() {
+    if (isHalfStrip()) armTaskHover();
+  });
+  dragZoneEl.addEventListener('mousemove', function() {
+    if (isHalfStrip() && !hoverExpanded) armTaskHover();
+  });
+  dragZoneEl.addEventListener('mouseleave', function() {
+    if (isHalfStrip()) clearTimeout(hoverTimer);
+  });
+  document.body.addEventListener('mouseleave', function() {
+    clearTimeout(collapseTimer);
+    collapseTimer = setTimeout(function() {
+      collapseTaskHover();
+      closeAssistFan();
+      closeAutopilotMenu();
+    }, 150);
+  });
+  document.addEventListener('mousemove', function() {
+    if (collapseTimer) {
+      clearTimeout(collapseTimer);
+      collapseTimer = null;
+    }
+  });
+
+  playBtnEl.addEventListener('click', function() {
+    window.widget && window.widget.toggleTimer();
+  });
+
+  document.getElementById('timer-dismiss').addEventListener('click', function() {
+    timerCompleteEl.classList.remove('visible');
+    window.widget && window.widget.dismissAlarm();
+  });
+
+  doneBtnEl.addEventListener('click', function() {
+    if (doneAnimating) return;
+    doneAnimating = true;
+
+    doneCheckEl.textContent = '✓';
+    doneBtnEl.classList.add('completing');
+
+    wrapperEl.classList.remove('done-glow');
+    void wrapperEl.offsetWidth; // force reflow to restart animation
+    wrapperEl.classList.add('done-glow');
+
+    window.widget && window.widget.taskDone();
+
+    taskFlashing = true;
+    taskInnerEl.textContent = 'Next task Incoming!';
+    taskEl.className = 'task-text next-task-flash';
+    setTimeout(function() {
+      taskFlashing = false;
+      taskEl.classList.remove('next-task-flash');
+    }, 2000);
+
+    setTimeout(function() {
+      doneBtnEl.classList.remove('completing');
+      doneCheckEl.textContent = '□';
+      wrapperEl.classList.remove('done-glow');
+      doneAnimating = false;
+    }, 2100);
+  });
+
+  document.querySelectorAll('.action-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var action = btn.dataset.action;
+      if (!action) return;
+      if (panelEl.classList.contains('open') && currentAction === action) {
+        closePanel();
+      } else {
+        openPanel(action);
+      }
+    });
+  });
+
+  document.getElementById('panel-cancel').addEventListener('click', closePanel);
+  document.getElementById('panel-save').addEventListener('click', savePanel);
+
+  // Analyse results: + button sends a suggestion to the task list, nested
+  // under the current task when there is one (same pipeline as Explore).
+  panelBodyEl.addEventListener('click', function(e) {
+    if (currentAction !== 'analyse') return;
+    var addBtn = e.target.closest('.analyse-sug-add');
+    if (addBtn && !addBtn.disabled) {
+      var sug = analyseSuggestions[parseInt(addBtn.dataset.i, 10)];
+      if (sug && window.widget && window.widget.exploreAddTask) {
+        window.widget.exploreAddTask({ text: sug, parentText: currentTaskText || null });
+        addBtn.textContent = '✓';
+        addBtn.disabled = true;
+      }
+    }
+  });
+
+  // Strategy panel: steps tick off (filling progress bar), + buttons add sub-tasks,
+  // "Convert all" button adds every step, and tick state persists per task.
+  panelBodyEl.addEventListener('click', function(e) {
+    if (currentAction !== 'strategy') return;
+
+    // Convert-all button
+    var addAllBtn = e.target.closest('.strategy-add-all');
+    if (addAllBtn && !addAllBtn.disabled) {
+      strategySteps.forEach(function(s) {
+        if (window.widget && window.widget.exploreAddTask) {
+          window.widget.exploreAddTask({ text: s, parentText: currentTaskText || null });
+        }
+      });
+      addAllBtn.textContent = '✓ All steps added';
+      addAllBtn.disabled = true;
+      return;
+    }
+
+    var stepAdd = e.target.closest('.strategy-step-add');
+    if (stepAdd && !stepAdd.disabled) {
+      var stepText = strategySteps[parseInt(stepAdd.dataset.i, 10)];
+      if (stepText && window.widget && window.widget.exploreAddTask) {
+        window.widget.exploreAddTask({ text: stepText, parentText: currentTaskText || null });
+        stepAdd.textContent = '✓';
+        stepAdd.disabled = true;
+      }
+      return;
+    }
+
+    var step = e.target.closest('.strategy-step');
+    if (step) {
+      step.classList.toggle('done');
+      var total = panelBodyEl.querySelectorAll('.strategy-step').length;
+      var done = panelBodyEl.querySelectorAll('.strategy-step.done').length;
+      var fill = document.getElementById('strategy-progress-fill');
+      if (fill) fill.style.width = (total ? Math.round((done / total) * 100) : 0) + '%';
+      // Persist tick state per task
+      try {
+        var ticks = Array.from(panelBodyEl.querySelectorAll('.strategy-step')).map(function(s) { return s.classList.contains('done'); });
+        var tickKey = 'widget:strategy-ticks:' + (currentTaskText || '');
+        localStorage.setItem(tickKey, JSON.stringify(ticks));
+      } catch {}
+    }
+  });
+
+  // Stuck panel: complication accordion + block-type selector + help button + chip-add
+  panelBodyEl.addEventListener('click', function(e) {
+    // Expand/collapse complication cards
+    var compHead = e.target.closest('.stuck-comp-head');
+    if (compHead) { compHead.parentElement.classList.toggle('open'); return; }
+
+    // Block-type pill selection
+    if (currentAction === 'stuck') {
+      var typeBtn = e.target.closest('.stuck-type-btn');
+      if (typeBtn) {
+        _stuckBlockType = typeBtn.dataset.btype || 'start';
+        document.querySelectorAll('.stuck-type-btn').forEach(function(b) {
+          b.classList.toggle('active', b.dataset.btype === _stuckBlockType);
+        });
+        return;
+      }
+
+      // "Get help" button
+      var helpBtn = e.target.closest('.stuck-help-btn');
+      if (helpBtn) {
+        var descEl = document.getElementById('stuck-desc');
+        var desc = descEl ? descEl.value.trim() : '';
+        var detailArea = document.getElementById('stuck-detail-area');
+        if (!detailArea) {
+          // Insert result area below the helper
+          var helper = document.getElementById('stuck-helper');
+          if (helper) {
+            detailArea = document.createElement('div');
+            detailArea.id = 'stuck-detail-area';
+            detailArea.className = 'stuck-detail-result';
+            helper.after(detailArea);
+          }
+        }
+        if (detailArea) detailArea.innerHTML = aiLoaderHtml('Thinking…');
+        callWidgetAI('stuck-detail', { description: desc, blockType: _stuckBlockType }).then(function(result) {
+          if (currentAction !== 'stuck') return;
+          var area = document.getElementById('stuck-detail-area');
+          if (!area) return;
+          if (result) {
+            var rhtml = '';
+            if (result.why) rhtml += aiCardHtml('', 'What\'s blocking you', escHtml(result.why));
+            if (result.firstStep) rhtml += aiCardHtml('green', 'First step', escHtml(result.firstStep), 0.08);
+            if (result.reframe) rhtml += aiCardHtml('', 'Reframe', escHtml(result.reframe), 0.16);
+            if (result.fiveMinCommit) rhtml += aiCardHtml('amber', '5-min commit', escHtml(result.fiveMinCommit), 0.24);
+            if (result.principle) rhtml += aiCardHtml('', 'Strategy', escHtml(result.principle));
+            if (result.startWith) rhtml += aiCardHtml('green', 'Start with', escHtml(result.startWith), 0.08);
+            if (result.gap) rhtml += aiCardHtml('amber', 'What\'s missing', escHtml(result.gap));
+            if (result.findIt) rhtml += aiCardHtml('', 'Find it fast', escHtml(result.findIt), 0.08);
+            if (result.unblock) rhtml += aiCardHtml('green', 'Move forward now', escHtml(result.unblock), 0.16);
+            if (result.subTasks && result.subTasks.length) {
+              rhtml += '<span class="ai-section-label">Sub-tasks</span><ul class="panel-tips">';
+              result.subTasks.forEach(function(s) {
+                var txt = s.text || s;
+                rhtml += '<li><span class="analyse-sug-text">' + escHtml(txt + (s.estimate ? ' (' + s.estimate + ')' : ''))
+                  + '</span><button class="explore-item-add stuck-sub-add" data-text="' + escHtml(txt) + '" title="Add as sub-task">+</button></li>';
+              });
+              rhtml += '</ul>';
+            }
+            area.innerHTML = rhtml || '<p class="ai-intro">No specific advice — try describing your blocker above.</p>';
+          } else {
+            area.innerHTML = '<p class="panel-error">Could not get help. Check your AI settings.</p>';
+          }
+        }).catch(function(err) {
+          if (currentAction !== 'stuck') return;
+          var area = document.getElementById('stuck-detail-area');
+          if (area) area.innerHTML = '<p class="panel-error">' + escHtml(err.message || 'Could not get help.') + '</p>';
+        });
+        return;
+      }
+
+      // Quick-win chip: add as a top-level task. Quick wins come from the
+      // whole-board stuck analysis, so they must not nest under the active
+      // task (subtasks are hidden until the parent row is expanded).
+      var chipAdd = e.target.closest('.ai-chip-add');
+      if (chipAdd && !chipAdd.disabled) {
+        var chip = chipAdd.closest('.ai-chip');
+        var chipText = chip ? chip.dataset.qtext : null;
+        if (chipText && window.widget && window.widget.exploreAddTask) {
+          window.widget.exploreAddTask({ text: chipText, parentText: null });
+          chipAdd.textContent = '✓';
+          chipAdd.disabled = true;
+        }
+        return;
+      }
+
+      // Sub-task add from stuck-detail result
+      var subAdd = e.target.closest('.stuck-sub-add');
+      if (subAdd && !subAdd.disabled) {
+        var subText = subAdd.dataset.text;
+        if (subText && window.widget && window.widget.exploreAddTask) {
+          window.widget.exploreAddTask({ text: subText, parentText: currentTaskText || null });
+          subAdd.textContent = '✓';
+          subAdd.disabled = true;
+        }
+        return;
+      }
+    }
+  });
+
+  // Explore panel interactions (delegated — the body re-renders per level).
+  panelBodyEl.addEventListener('click', function(e) {
+    if (currentAction !== 'explore') return;
+    if (e.target.closest('#explore-back')) {
+      exploreStack.pop();
+      renderExplore();
+      return;
+    }
+    var go = e.target.closest('#explore-go');
+    if (go) {
+      var typed = getInput() ? getInput().value.trim() : '';
+      if (typed) runExplore(typed);
+      return;
+    }
+    var textBtn = e.target.closest('.explore-item-text');
+    if (textBtn) {
+      var item = getExploreItem(textBtn.dataset.sec, textBtn.dataset.i);
+      if (item) runExplore(item);
+      return;
+    }
+    var addBtn = e.target.closest('.explore-item-add');
+    if (addBtn && !addBtn.disabled) {
+      var task = getExploreItem(addBtn.dataset.sec, addBtn.dataset.i);
+      if (task && window.widget && window.widget.exploreAddTask) {
+        // Lands as a subtask of the task the exploration started from, or a
+        // new task when explored free-form.
+        window.widget.exploreAddTask({ text: task, parentText: exploreRootTask });
+        addBtn.textContent = '✓';
+        addBtn.disabled = true;
+      }
+    }
+  });
+
+  document.getElementById('close-btn').addEventListener('click', function() {
+    window.widget && window.widget.minimizeToTray();
+  });
+
+  [1, 2, 3, 4].forEach(function(n) {
+    var btn = document.getElementById('snap-btn-' + n);
+    btn.addEventListener('click', function() {
+      window.widget && window.widget.snapWindows(n);
+      btn.classList.add('snapped');
+      setTimeout(function() { btn.classList.remove('snapped'); }, 600);
+    });
+  });
+
+  var pinBottomBtn = document.getElementById('pin-bottom-btn');
+  pinBottomBtn.addEventListener('click', function() {
+    window.widget && window.widget.togglePinBottom();
+  });
+
+  document.getElementById('panel-body').addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closePanel(); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { savePanel(); }
+  });
+
+  var taskbarBtn = document.getElementById('taskbar-btn');
+  taskbarBtn.addEventListener('click', function() {
+    window.widget && window.widget.toggleTaskbar();
+  });
+
+  if (window.widget) {
+    window.widget.onTaskbar(function(enabled) {
+      taskbarBtn.classList.toggle('active', enabled);
+      taskbarBtn.title = enabled ? 'Unpin from taskbar' : 'Pin to taskbar';
+      taskbarBtn.textContent = enabled ? '⊞' : '⊟';
+    });
+  }
+
+  assistBtnEl.addEventListener('click', function() {
+    if (assistOpen) { closeAssistFan(); return; }
+    if (panelEl.classList.contains('open')) closePanel();
+    openAssistFan();
+  });
+
+  // Half-size strip: the Assist button lives in the hover flyout instead of
+  // the bar. openAssistFan clears the flyout state itself and grows the
+  // window straight to fan height — no bounce through base height.
+  document.getElementById('task-hover-assist').addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (panelEl.classList.contains('open')) closePanel();
+    openAssistFan();
+  });
+
+  var openAppBtnEl = document.getElementById('open-app-btn');
+  openAppBtnEl.addEventListener('click', function() {
+    window.widget && window.widget.toggleMain();
+  });
+
+  // ── AI-Autopilot: one launcher, two options. The button reveals a small
+  // menu (same reveal/anchor mechanics as the assist fan); picking an option
+  // runs it and the launcher itself carries the busy/pulse state.
+  var autopilotBtnEl = document.getElementById('ai-autopilot-btn');
+  var autopilotMenuEl = document.getElementById('autopilot-menu');
+  var autopilotOpen = false;
+
+  function openAutopilotMenu() {
+    if (autopilotOpen) return;
+    if (autopilotBtnEl.classList.contains('busy')) return; // running — no reopen
+    var style = document.body.getAttribute('data-style');
+    // Mutually exclusive with the assist fan; keep the window grown so we
+    // resize straight to the menu height (no shrink/grow bounce).
+    closeAssistFan(true);
+    clearTimeout(hoverTimer);
+    hoverTimer = null;
+    clearTimeout(collapseTimer);
+    collapseTimer = null;
+    hoverExpanded = false;
+    document.body.removeAttribute('data-hover-expand');
+    holdEntranceUntilResize();
+    document.body.setAttribute('data-autopilot-open', 'true');
+    autopilotOpen = true;
+    autopilotBtnEl.classList.add('active');
+    if (!isCondensedWindow && style === 'sidebar') return; // full-height, inline
+    assistGrow(Math.min(220, autopilotMenuEl.offsetHeight));
+  }
+
+  function closeAutopilotMenu(keepGrow) {
+    if (!autopilotOpen) return;
+    autopilotOpen = false;
+    document.body.removeAttribute('data-autopilot-open');
+    autopilotBtnEl.classList.remove('active');
+    if (!keepGrow) assistGrow(0);
+  }
+
+  autopilotBtnEl.addEventListener('click', function() {
+    if (autopilotBtnEl.classList.contains('busy')) return;
+    if (autopilotOpen) { closeAutopilotMenu(); return; }
+    if (panelEl.classList.contains('open')) closePanel();
+    openAutopilotMenu();
+  });
+
+  autopilotMenuEl.addEventListener('click', function(e) {
+    var item = e.target.closest('.autopilot-item');
+    if (!item) return;
+    var action = item.dataset.action;
+    closeAutopilotMenu();
+    if (action === 'window') runWindowTasks();
+    else if (action === 'goal') runGoalTasks();
+  });
+
+  // AI-Window-Tasks: the main app runs the full pipeline (scan → form → assign)
+  // in the background — no window focus. The launcher pulses, blurred and
+  // unclickable, until the app's explicit completion signal; the long timer
+  // is only a safety net for a dead main window, not the normal path.
+  function finishAutomate() {
+    automateWaiting = false;
+    clearTimeout(automateTimer);
+    autopilotBtnEl.classList.remove('busy');
+    autopilotBtnEl.disabled = false;
+  }
+
+  function runWindowTasks() {
+    if (automateWaiting || autopilotBtnEl.disabled) return;
+    automateWaiting = true;
+    autopilotBtnEl.classList.add('busy');
+    autopilotBtnEl.disabled = true;
+    if (!taskFlashing) taskInnerEl.textContent = 'Choosing a task…';
+    window.widget && window.widget.aiAutomate();
+    clearTimeout(automateTimer);
+    automateTimer = setTimeout(finishAutomate, 120000);
+  }
+
+  window.widget && window.widget.onAutomateDone && window.widget.onAutomateDone(function(result) {
+    finishAutomate();
+    if (result && result.ok === false) {
+      if (!taskFlashing) {
+        var prev = currentTaskText || currentContextTaskText || 'No active task';
+        taskInnerEl.textContent = 'Nothing to automate right now';
+        setTimeout(function() {
+          if (!taskFlashing) taskInnerEl.textContent = prev;
+        }, 3000);
+      }
+    } else {
+      // Assigned: flash the chosen task when its widget:update push lands.
+      automateFlashPending = true;
+    }
+  });
+
+  // AI-Goal-Tasks: unlike Window-Tasks this is NOT a background pipeline — the
+  // main app comes forward and shows the plan, so there is no completion
+  // round-trip. Just fire it and flash the launcher briefly so the click reads.
+  function runGoalTasks() {
+    if (autopilotBtnEl.disabled) return;
+    autopilotBtnEl.classList.add('busy');
+    autopilotBtnEl.disabled = true;
+    window.widget && window.widget.aiGoalTasks();
+    setTimeout(function() {
+      autopilotBtnEl.classList.remove('busy');
+      autopilotBtnEl.disabled = false;
+    }, 1500);
+  }
+
+  document.getElementById('widget-capture-btn').addEventListener('click', function() {
+    window.widget && window.widget.openCapture();
+  });
+
+  assistFanEl.addEventListener('click', function(e) {
+    var item = e.target.closest('.assist-fan-item');
+    if (!item) return;
+    if (item.dataset.action === 'capture') {
+      if (currentContextTaskText) {
+        window.widget && window.widget.contextCapture(currentContextTaskText);
+      }
+      closeAssistFan();
+      return;
+    }
+    trackFanUsage(item.dataset.action);
+    openPanel(item.dataset.action);
+  });
+
+  // The panel's height is content-driven (AI results arrive async), so track
+  // it and keep the window grown to fit. The condensed strip grows via the
+  // anchored hover-expand path; bar/pill re-report through set-panel-open and
+  // the main process clamps + resizes (sidebar ignores the height).
+  if (window.ResizeObserver) {
+    new ResizeObserver(function() {
+      if (!panelEl.classList.contains('open')) return;
+      if (isCondensedWindow) {
+        setCondensedGrow(Math.min(220, panelEl.offsetHeight));
+      } else {
+        window.widget && window.widget.setPanelOpen(true, panelEl.offsetHeight);
+      }
+    }).observe(panelEl);
+  }
+
+  var condenseBtn = document.getElementById('condense-btn');
+  condenseBtn.addEventListener('click', function() {
+    window.widget && window.widget.toggleCondense();
+  });
+
+  var halfBtn = document.getElementById('half-btn');
+  halfBtn.textContent = '◧';
+  halfBtn.addEventListener('click', function() {
+    // Close any open overlay first — the strip is about to be re-embedded
+    // at the new width, so grown bounds would be stale.
+    if (panelEl.classList.contains('open')) closePanel();
+    closeAssistFan();
+    collapseTaskHover();
+    window.widget && window.widget.toggleCondensedHalf();
+  });
+  if (window.widget && window.widget.onCondensedHalf) {
+    window.widget.onCondensedHalf(function(half) {
+      document.body.setAttribute('data-half', half ? 'true' : 'false');
+      halfBtn.textContent = half ? '◨' : '◧';
+      halfBtn.title = half ? 'Expand to full size' : 'Half-size strip';
+    });
+  }
+  if (isCondensedWindow) {
+    condenseBtn.textContent = '▴';
+    condenseBtn.title = 'Expand widget';
+  }
+
+  document.getElementById('main-bar').addEventListener('dblclick', function() {
+    if (document.body.getAttribute('data-condensed') === 'true') {
+      window.widget && window.widget.toggleCondense();
+    }
+  });
+
+  if (window.widget) {
+    window.widget.onCondense(function(condensed) {
+      hoverExpanded = false;
+      clearTimeout(hoverTimer);
+      document.body.removeAttribute('data-hover-expand');
+      document.body.setAttribute('data-condensed', condensed ? 'true' : 'false');
+      condenseBtn.title = condensed ? 'Expand widget' : 'Condense to taskbar';
+      condenseBtn.textContent = condensed ? '▴' : '▾';
+    });
+  }
+
+  var celebrationOverlayEl  = document.getElementById('celebration-overlay');
+  var celebrationLoadingEl  = document.getElementById('celebration-loading');
+  var celebrationContentEl  = document.getElementById('celebration-content');
+  var celebrationHeadlineEl = document.getElementById('celebration-headline');
+  var celebrationBodyEl     = document.getElementById('celebration-body');
+  var celebrationExtrasEl   = document.getElementById('celebration-extras');
+  var celebrationNextMoveEl = document.getElementById('celebration-next-move');
+  var celebrationNextLblEl  = document.getElementById('celebration-next-label');
+  var celebrationNextWhyEl  = document.getElementById('celebration-next-why');
+  var celebrationDismissEl  = document.getElementById('celebration-dismiss');
+
+  function showCelebration(data) {
+    collapseTaskHover();
+    if (!celebrationOverlayEl.classList.contains('active')) holdEntranceUntilResize();
+    celebrationOverlayEl.classList.add('active');
+
+    if (!data || data === 'loading') {
+      celebrationLoadingEl.style.display = 'flex';
+      celebrationContentEl.style.display = 'none';
+      return;
+    }
+
+    celebrationLoadingEl.style.display = 'none';
+    celebrationContentEl.style.display = 'flex';
+    celebrationHeadlineEl.textContent = data.headline || '';
+    celebrationBodyEl.textContent = data.body || '';
+
+    celebrationExtrasEl.innerHTML = '';
+    if (data.goalLink) {
+      var gl = document.createElement('p');
+      gl.className = 'celebration-goal-link';
+      gl.textContent = data.goalLink;
+      celebrationExtrasEl.appendChild(gl);
+    }
+    if (data.streakNote) {
+      var sn = document.createElement('p');
+      sn.className = 'celebration-streak';
+      sn.textContent = data.streakNote;
+      celebrationExtrasEl.appendChild(sn);
+    }
+
+    if (data.nextMove) {
+      celebrationNextLblEl.textContent = data.nextMove.label || '';
+      celebrationNextWhyEl.textContent = data.nextMove.why || '';
+      celebrationNextMoveEl.style.display = '';
+    } else {
+      celebrationNextMoveEl.style.display = 'none';
+    }
+  }
+
+  function dismissCelebrationWidget() {
+    celebrationOverlayEl.classList.remove('active');
+    window.widget && window.widget.dismissCelebration();
+  }
+
+  if (window.widget) {
+    window.widget.onCelebration(function(data) {
+      if (data) {
+        showCelebration(data);
+      } else {
+        celebrationOverlayEl.classList.remove('active');
+      }
+    });
+  }
+
+  celebrationDismissEl.addEventListener('click', dismissCelebrationWidget);
+  celebrationNextMoveEl.addEventListener('click', dismissCelebrationWidget);
+
+  // ── Hover tooltips for assist fan buttons ─────────────────────────────────
+  (function() {
+    var tip = document.getElementById('btn-tooltip');
+    var showTimer = null;
+
+    function showTip(text, rect) {
+      tip.textContent = text;
+      tip.classList.remove('visible');
+      // position above the button, centred
+      var tw = tip.offsetWidth;
+      var x = rect.left + rect.width / 2 - tw / 2;
+      var y = rect.top - tip.offsetHeight - 7;
+      // clamp to viewport
+      x = Math.max(4, Math.min(x, window.innerWidth - tw - 4));
+      if (y < 4) y = rect.bottom + 7; // flip below if no room above
+      tip.style.left = x + 'px';
+      tip.style.top  = y + 'px';
+      tip.classList.add('visible');
+    }
+
+    function hideTip() {
+      clearTimeout(showTimer);
+      tip.classList.remove('visible');
+    }
+
+    document.querySelectorAll('.assist-fan-item[data-tooltip]').forEach(function(btn) {
+      btn.addEventListener('mouseenter', function() {
+        clearTimeout(showTimer);
+        showTimer = setTimeout(function() {
+          showTip(btn.getAttribute('data-tooltip'), btn.getBoundingClientRect());
+        }, 300);
+      });
+      btn.addEventListener('mouseleave', hideTip);
+      btn.addEventListener('click', hideTip);
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+import{j as e}from"./index-C9UxTE8y.js";function n({notes:a,setNotes:s}){return e.jsxs("div",{className:"notes-section",children:[e.jsx("p",{className:"section-label",children:"Notes"}),e.jsx("textarea",{className:"notes-textarea",placeholder:"Scratch pad — anything goes...",value:a,onChange:t=>s(t.target.value),spellCheck:!1})]})}export{n as default};
